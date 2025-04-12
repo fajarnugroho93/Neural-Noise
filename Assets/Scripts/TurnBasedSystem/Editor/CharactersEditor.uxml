@@ -1,0 +1,30 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/Scripts/TurnBasedSystem/Editor/CharactersEditor.uss?fileID=7433441132597879392&amp;guid=fbb409c8b850f449fb84cce90617b521&amp;type=3#CharactersEditor" />
+    <ui:VisualElement name="MainContainer" style="flex-grow: 1;">
+        <ui:VisualElement name="ToolbarContainer" style="flex-direction: row; height: 30px;">
+            <ui:VisualElement style="flex-direction: row;">
+                <uie:ToolbarToggle name="HeroesToggle" text="Heroes" value="true" />
+                <uie:ToolbarToggle name="EnemiesToggle" text="Enemies" value="false" />
+            </ui:VisualElement>
+            <ui:VisualElement style="flex-grow: 1;" />
+            <ui:Label text="Sort by:" style="padding-left: 10px; padding-right: 5px; -unity-text-align: middle-center;" />
+            <ui:DropdownField name="SortDropdown" index="0" style="width: 100px;" />
+            <ui:TextField name="SearchField" placeholder-text="Search..." style="width: 200px;" />
+        </ui:VisualElement>
+        <ui:VisualElement style="flex-direction: row; flex-grow: 1;">
+            <ui:VisualElement name="ListContainer" style="width: 250px; border-right-width: 1px; border-right-color: rgb(80, 80, 80);">
+                <ui:VisualElement style="flex-direction: row; height: 25px; background-color: rgb(60, 60, 60);">
+                    <ui:Label text="Characters" style="padding-left: 5px; -unity-font-style: bold; -unity-text-align: middle-left;" />
+                    <ui:VisualElement style="flex-grow: 1;" />
+                    <ui:Button name="AddButton" text="+" style="width: 25px;" />
+                    <ui:Button name="DeleteButton" text="-" style="width: 25px;" />
+                </ui:VisualElement>
+                <ui:ListView name="CharacterListView" style="flex-grow: 1;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="DetailsContainer" style="flex-grow: 1;">
+                <ui:Label name="NoSelectionLabel" text="No character selected" style="font-size: 14px; -unity-text-align: middle-center; padding-top: 20px;" />
+                <ui:ScrollView name="CharacterDetailsView" style="flex-grow: 1; display: none;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

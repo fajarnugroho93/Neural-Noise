@@ -1,0 +1,111 @@
+.unity-list-view__item:hover {
+    background-color: rgba(60, 60, 60, 0.8);
+    flex-grow: 0;
+    flex-shrink: 1;
+}
+
+.unity-list-view__item--selected {
+    background-color: rgb(44, 93, 135);
+    flex-grow: 0;
+    flex-shrink: 1;
+}
+
+.unity-list-view__item--selected:hover {
+    background-color: rgb(54, 103, 145);
+    flex-shrink: 1;
+    flex-grow: 1;
+}
+
+#MainContainer {
+    padding: 0;
+}
+
+#ToolbarContainer {
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(40, 40, 40);
+    background-color: rgb(50, 50, 50);
+    padding: 4px;
+}
+
+#ListContainer {
+    background-color: rgb(40, 40, 40);
+}
+
+#DetailsContainer {
+    padding: 8px;
+}
+
+.character-list-item {
+    padding: 4px 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(30, 30, 30);
+    min-height: 50px;
+    flex-shrink: 0;
+    flex-grow: 1;
+}
+
+.character-portrait {
+    height: 50px;
+    width: 50px;
+    flex-shrink: 0;
+    flex-grow: 1;
+}
+
+.character-index {
+    width: 30px;
+    -unity-text-align: middle-left;
+    color: rgb(180, 180, 180);
+    flex-shrink: 0;
+    flex-grow: 1;
+}
+
+.character-name {
+    flex-grow: 1;
+    -unity-text-align: middle-left;
+    -unity-font-style: bold;
+    flex-shrink: 0;
+}
+
+.unity-toolbar-toggle {
+    width: 80px;
+    -unity-text-align: middle-center;
+}
+
+.unity-toolbar-toggle:checked {
+    background-color: rgb(44, 93, 135);
+}
+
+#SearchField {
+    margin-right: 4px;
+}
+
+#AddButton {
+    font-size: 14px;
+    -unity-font-style: bold;
+    background-color: rgb(60, 120, 60);
+    color: white;
+    border-width: 0;
+    margin: 2px;
+}
+
+#AddButton:hover {
+    background-color: rgb(70, 130, 70);
+}
+
+#DeleteButton {
+    font-size: 14px;
+    -unity-font-style: bold;
+    background-color: rgb(120, 60, 60);
+    color: white;
+    border-width: 0;
+    margin: 2px;
+}
+
+#DeleteButton:hover {
+    background-color: rgb(130, 70, 70);
+}
+
+#DeleteButton:disabled {
+    background-color: rgb(80, 60, 60);
+    color: rgb(180, 180, 180);
+}
