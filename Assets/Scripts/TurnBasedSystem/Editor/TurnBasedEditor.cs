@@ -252,7 +252,7 @@ namespace TurnBasedSystem.Editor
 
         private void UpdateGroupTogglesVisibility()
         {
-            bool showGroupToggles = _currentTab == EditorTab.Characters;
+            var showGroupToggles = _currentTab == EditorTab.Characters;
             _heroesToggle.style.display = showGroupToggles ? DisplayStyle.Flex : DisplayStyle.None;
             _enemiesToggle.style.display = showGroupToggles ? DisplayStyle.Flex : DisplayStyle.None;
             _bossesToggle.style.display = showGroupToggles ? DisplayStyle.Flex : DisplayStyle.None;
@@ -269,13 +269,13 @@ namespace TurnBasedSystem.Editor
             switch (_currentTab)
             {
                 case EditorTab.Characters:
-                    return new List<string> { "Name", "Health", "Speed" };
+                    return new List<string> { "Value", "Name", "Health", "Speed" };
                 case EditorTab.Skills:
-                    return new List<string> { "Name", "Target" };
+                    return new List<string> { "Value", "Name" };
                 case EditorTab.Effects:
-                    return new List<string> { "Name", "Value" };
+                    return new List<string> { "Value", "Name" };
                 default:
-                    return new List<string> { "Name" };
+                    return new List<string>();
             }
         }
 
@@ -643,17 +643,22 @@ namespace TurnBasedSystem.Editor
 
             switch (_sortDropdown.index)
             {
-                case 0: // Name
+                case 0: // Value
                     _filteredCharacterList = _filteredCharacterList
-                        .OrderBy(c => c.CharacterModel.Character)
+                        .OrderBy(c => (int)c.CharacterModel.Character)
                         .ToList();
                     break;
-                case 1: // Health
+                case 1: // Name
+                    _filteredCharacterList = _filteredCharacterList
+                        .OrderBy(c => c.CharacterModel.Character.ToString())
+                        .ToList();
+                    break;
+                case 2: // Health
                     _filteredCharacterList = _filteredCharacterList
                         .OrderByDescending(c => c.CharacterModel.Health)
                         .ToList();
                     break;
-                case 2: // Speed
+                case 3: // Speed
                     _filteredCharacterList = _filteredCharacterList
                         .OrderByDescending(c => c.CharacterModel.Speed)
                         .ToList();
@@ -668,14 +673,14 @@ namespace TurnBasedSystem.Editor
 
             switch (_sortDropdown.index)
             {
-                case 0: // Name
-                    _filteredSkillList = _filteredSkillList
-                        .OrderBy(s => s.ToString())
-                        .ToList();
-                    break;
-                case 1: // Target
+                case 0: // Value
                     _filteredSkillList = _filteredSkillList
                         .OrderBy(s => (int)s)
+                        .ToList();
+                    break;
+                case 1: // Name
+                    _filteredSkillList = _filteredSkillList
+                        .OrderBy(s => s.ToString())
                         .ToList();
                     break;
             }
@@ -688,14 +693,14 @@ namespace TurnBasedSystem.Editor
 
             switch (_sortDropdown.index)
             {
-                case 0: // Name
-                    _filteredEffectsList = _filteredEffectsList
-                        .OrderBy(e => e.ToString())
-                        .ToList();
-                    break;
-                case 1: // Value
+                case 0: // Value
                     _filteredEffectsList = _filteredEffectsList
                         .OrderBy(e => (int)e)
+                        .ToList();
+                    break;
+                case 1: // Name
+                    _filteredEffectsList = _filteredEffectsList
+                        .OrderBy(e => e.ToString())
                         .ToList();
                     break;
             }
