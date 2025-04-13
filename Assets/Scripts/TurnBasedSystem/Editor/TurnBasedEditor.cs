@@ -102,8 +102,8 @@ namespace TurnBasedSystem.Editor
         {
             LoadUIElements();
             LoadDataSources();
-            UpdateListView();
             SetupSortDropdown();
+            UpdateListView();
         }
 
         private void LoadUIElements()
@@ -245,6 +245,9 @@ namespace TurnBasedSystem.Editor
                     _effectsTabButton.AddToClassList("tab-selected");
                     break;
             }
+            
+            _sortDropdown.choices = GetSortOptionsForCurrentTab();
+            _sortDropdown.index = 0;
 
             _selectedItem = null;
             ShowNoSelectionMessage();
@@ -565,6 +568,12 @@ namespace TurnBasedSystem.Editor
                     FilterEffectsList(searchString);
                     break;
             }
+            
+            _sortDropdown.choices = GetSortOptionsForCurrentTab();
+            if (_sortDropdown.index >= _sortDropdown.choices.Count)
+            {
+                _sortDropdown.index = 0;
+            }
 
             SortList();
             UpdateListView();
@@ -722,7 +731,6 @@ namespace TurnBasedSystem.Editor
             }
 
             _listView.Rebuild();
-            SetupSortDropdown();
         }
 
         private void OnAddButtonClicked()
