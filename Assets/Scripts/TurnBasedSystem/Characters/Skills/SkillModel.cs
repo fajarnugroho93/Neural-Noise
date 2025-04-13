@@ -8,8 +8,6 @@ namespace TurnBasedSystem.Characters.Skills
     public class SkillModel
     {
         public Skill Skill;
-        public string Name;
-        public string Description;
         public Sprite Portrait;
         public SkillTarget Target;
         public List<SkillEffectModel> Effects;

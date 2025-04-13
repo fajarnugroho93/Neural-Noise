@@ -135,41 +135,56 @@ namespace TurnBasedSystem.Editor
             _characterListView.makeItem = MakeListItem;
             _characterListView.bindItem = BindListItem;
             _characterListView.selectionChanged += OnCharacterSelectionChanged;
-            _characterListView.fixedItemHeight = 40;
+            _characterListView.fixedItemHeight = 50;
         }
 
         private VisualElement MakeListItem()
         {
             var element = new VisualElement();
-            element.style.flexDirection = FlexDirection.Row;
-            element.style.flexGrow = 1;
-            element.style.height = 50;
-            element.style.borderBottomWidth = 1;
-            element.style.borderBottomColor = new Color(0.1f, 0.1f, 0.1f);
-            element.style.paddingLeft = 5;
-            element.style.paddingRight = 5;
-            
+            element.AddToClassList("character-list-item");
+    
             var characterPortraitImage = new Image();
             characterPortraitImage.name = "CharacterPortraitImage";
-            characterPortraitImage.style.flexGrow = 1;
-            characterPortraitImage.style.width = 50;
-            characterPortraitImage.style.height = 50;
+            characterPortraitImage.AddToClassList("character-portrait");
             element.Add(characterPortraitImage);
-            
-            // var characterIndexLabel = new Label();
-            // characterIndexLabel.name = "CharacterIndexLabel";
-            // characterIndexLabel.style.width = 30;
-            // characterIndexLabel.style.unityTextAlign = TextAnchor.MiddleLeft;
-            // element.Add(characterIndexLabel);
-            
+    
             var characterNameLabel = new Label();
             characterNameLabel.name = "CharacterNameLabel";
-            characterNameLabel.style.paddingLeft = 10;
-            characterNameLabel.style.flexGrow = 1;
-            characterNameLabel.style.unityTextAlign = TextAnchor.MiddleLeft;
+            characterNameLabel.AddToClassList("character-name");
             element.Add(characterNameLabel);
-            
+    
             return element;
+            
+            // var element = new VisualElement();
+            // element.style.flexDirection = FlexDirection.Row;
+            // element.style.flexGrow = 1;
+            // element.style.height = 50;
+            // element.style.borderBottomWidth = 1;
+            // element.style.borderBottomColor = new Color(0.1f, 0.1f, 0.1f);
+            // element.style.paddingLeft = 5;
+            // element.style.paddingRight = 5;
+            //
+            // var characterPortraitImage = new Image();
+            // characterPortraitImage.name = "CharacterPortraitImage";
+            // characterPortraitImage.style.flexGrow = 1;
+            // characterPortraitImage.style.width = 50;
+            // characterPortraitImage.style.height = 50;
+            // element.Add(characterPortraitImage);
+            //
+            // // var characterIndexLabel = new Label();
+            // // characterIndexLabel.name = "CharacterIndexLabel";
+            // // characterIndexLabel.style.width = 30;
+            // // characterIndexLabel.style.unityTextAlign = TextAnchor.MiddleLeft;
+            // // element.Add(characterIndexLabel);
+            //
+            // var characterNameLabel = new Label();
+            // characterNameLabel.name = "CharacterNameLabel";
+            // characterNameLabel.style.paddingLeft = 10;
+            // characterNameLabel.style.flexGrow = 1;
+            // characterNameLabel.style.unityTextAlign = TextAnchor.MiddleLeft;
+            // element.Add(characterNameLabel);
+            //
+            // return element;
         }
 
         private void BindListItem(VisualElement element, int index)
