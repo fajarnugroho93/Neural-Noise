@@ -7,5 +7,6 @@ namespace TurnBasedSystem.Characters.Skills
         Stab = 2,
         Patch = 3,
         Protect = 4,
+        Burn = 5,
     }
 }

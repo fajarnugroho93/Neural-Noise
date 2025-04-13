@@ -14,12 +14,12 @@ namespace TurnBasedSystem.Editor
         private const string CharacterFolderPath = "Assets/Resources/Data/Characters/";
         private const string EnumFilePath = "Assets/Scripts/TurnBasedSystem/Characters/Character.cs";
         
-        private static CharactersEditor _parentEditor;
+        private static TurnBasedEditor _parentEditor;
         private CharacterGroup _characterGroup = CharacterGroup.Hero;
         private string _characterName = "";
         private string _errorMessage = "";
         
-        public static void Show(CharactersEditor parentEditor)
+        public static void Show(TurnBasedEditor parentEditor)
         {
             _parentEditor = parentEditor;
             var window = GetWindow<CharacterCreationPopup>(true, "Create New Character", true);

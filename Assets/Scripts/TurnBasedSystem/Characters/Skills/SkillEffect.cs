@@ -9,6 +9,7 @@ namespace TurnBasedSystem.Characters.Skills
         SelfDamage = 4,
         SelfHeal = 5,
         SelfShield = 6,
-        TargetP0oison = 7,
+        TargetPoison = 7,
+        TargetBurn = 8,
     }
 }
