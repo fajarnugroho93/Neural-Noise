@@ -5,6 +5,7 @@
             <ui:VisualElement style="flex-direction: row;">
                 <uie:ToolbarToggle name="HeroesToggle" text="Heroes" value="true" />
                 <uie:ToolbarToggle name="EnemiesToggle" text="Enemies" value="false" />
+                <uie:ToolbarToggle name="BossesToggle" text="Bosses" value="false" />
             </ui:VisualElement>
             <ui:VisualElement style="flex-grow: 1;" />
             <ui:Label text="Sort by:" style="padding-left: 10px; padding-right: 5px; -unity-text-align: middle-center;" />

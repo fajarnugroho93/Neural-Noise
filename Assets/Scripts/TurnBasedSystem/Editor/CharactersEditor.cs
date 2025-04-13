@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using TurnBasedSystem.Characters;
 using TurnBasedSystem.Characters.Skills;
 using UnityEditor;
@@ -12,6 +14,14 @@ namespace TurnBasedSystem.Editor
     public class CharactersEditor : EditorWindow
     {
         private const string WindowTitle = "Characters Editor";
+        private const string EnumFilePath = "Assets/Scripts/TurnBasedSystem/Characters/Character.cs";
+        private readonly List<Character> _protectedCharacters = new() 
+        { 
+            Character.None, 
+            Character.Warrior, 
+            Character.Mossball, 
+            Character.Mossking 
+        };
         
         private CharactersScriptableObject _charactersScriptableObject;
         private List<CharacterScriptableObject> _currentCharacterList = new();
@@ -34,6 +44,7 @@ namespace TurnBasedSystem.Editor
         
         private ToolbarToggle _heroesToggle;
         private ToolbarToggle _enemiesToggle;
+        private ToolbarToggle _bossesToggle;
         private int _currentTabIndex = 0;
         
         private CharacterGroup _currentCharacterGroup = CharacterGroup.Hero;
@@ -51,6 +62,7 @@ namespace TurnBasedSystem.Editor
             LoadUIElements();
             LoadDataSource();
             RefreshCharacterList();
+            SetupSortDropdown();
         }
 
         private void LoadUIElements()
@@ -75,25 +87,39 @@ namespace TurnBasedSystem.Editor
 
         private void SetupUIReferences()
         {
-            _mainContainer = rootVisualElement.Q<VisualElement>("MainContainer") ?? _mainContainer;
-            _toolbarContainer = rootVisualElement.Q<VisualElement>("ToolbarContainer") ?? _toolbarContainer;
-            _listContainer = rootVisualElement.Q<VisualElement>("ListContainer") ?? _listContainer;
-            _detailsContainer = rootVisualElement.Q<VisualElement>("DetailsContainer") ?? _detailsContainer;
+            _mainContainer = rootVisualElement.Q<VisualElement>("MainContainer");
+            _toolbarContainer = rootVisualElement.Q<VisualElement>("ToolbarContainer");
+            _listContainer = rootVisualElement.Q<VisualElement>("ListContainer");
+            _detailsContainer = rootVisualElement.Q<VisualElement>("DetailsContainer");
             
-            _heroesToggle = rootVisualElement.Q<ToolbarToggle>("HeroesToggle") ?? _heroesToggle;
-            _enemiesToggle = rootVisualElement.Q<ToolbarToggle>("EnemiesToggle") ?? _enemiesToggle;
+            _heroesToggle = rootVisualElement.Q<ToolbarToggle>("HeroesToggle");
+            _enemiesToggle = rootVisualElement.Q<ToolbarToggle>("EnemiesToggle");
+            _bossesToggle = rootVisualElement.Q<ToolbarToggle>("BossesToggle") ?? CreateBossesToggle();
             
-            _searchField = rootVisualElement.Q<TextField>("SearchField") ?? _searchField;
-            _sortDropdown = rootVisualElement.Q<DropdownField>("SortDropdown") ?? _sortDropdown;
+            _searchField = rootVisualElement.Q<TextField>("SearchField");
+            _sortDropdown = rootVisualElement.Q<DropdownField>("SortDropdown");
             
-            _characterListView = rootVisualElement.Q<ListView>("CharacterListView") ?? _characterListView;
-            _noSelectionLabel = rootVisualElement.Q<Label>("NoSelectionLabel") ?? _noSelectionLabel;
-            _characterDetailsView = rootVisualElement.Q<ScrollView>("CharacterDetailsView") ?? _characterDetailsView;
+            _characterListView = rootVisualElement.Q<ListView>("CharacterListView");
+            _noSelectionLabel = rootVisualElement.Q<Label>("NoSelectionLabel");
+            _characterDetailsView = rootVisualElement.Q<ScrollView>("CharacterDetailsView");
             
-            _addButton = rootVisualElement.Q<Button>("AddButton") ?? _addButton;
-            _deleteButton = rootVisualElement.Q<Button>("DeleteButton") ?? _deleteButton;
+            _addButton = rootVisualElement.Q<Button>("AddButton");
+            _deleteButton = rootVisualElement.Q<Button>("DeleteButton");
             
             SetupListView();
+        }
+        
+        private ToolbarToggle CreateBossesToggle()
+        {
+            var toggle = new ToolbarToggle();
+            toggle.name = "BossesToggle";
+            toggle.text = "Bosses";
+            toggle.value = false;
+            
+            var toggleContainer = _heroesToggle.parent;
+            toggleContainer.Add(toggle);
+            
+            return toggle;
         }
 
         private void RegisterCallbacks()
@@ -103,6 +129,7 @@ namespace TurnBasedSystem.Editor
                 if (evt.newValue)
                 {
                     _enemiesToggle.SetValueWithoutNotify(false);
+                    _bossesToggle.SetValueWithoutNotify(false);
                     _currentCharacterGroup = CharacterGroup.Hero;
                     RefreshCharacterList();
                     _selectedCharacter = null;
@@ -115,7 +142,21 @@ namespace TurnBasedSystem.Editor
                 if (evt.newValue)
                 {
                     _heroesToggle.SetValueWithoutNotify(false);
+                    _bossesToggle.SetValueWithoutNotify(false);
                     _currentCharacterGroup = CharacterGroup.Enemy;
+                    RefreshCharacterList();
+                    _selectedCharacter = null;
+                    ShowNoSelectionMessage();
+                }
+            });
+            
+            _bossesToggle.RegisterValueChangedCallback(evt => 
+            {
+                if (evt.newValue)
+                {
+                    _heroesToggle.SetValueWithoutNotify(false);
+                    _enemiesToggle.SetValueWithoutNotify(false);
+                    _currentCharacterGroup = CharacterGroup.Boss;
                     RefreshCharacterList();
                     _selectedCharacter = null;
                     ShowNoSelectionMessage();
@@ -128,6 +169,12 @@ namespace TurnBasedSystem.Editor
             
             _addButton.clicked += OnAddButtonClicked;
             _deleteButton.clicked += OnDeleteButtonClicked;
+        }
+
+        private void SetupSortDropdown()
+        {
+            _sortDropdown.choices = new List<string> { "Name", "Health", "Speed" };
+            _sortDropdown.index = 0;
         }
 
         private void SetupListView()
@@ -154,37 +201,6 @@ namespace TurnBasedSystem.Editor
             element.Add(characterNameLabel);
     
             return element;
-            
-            // var element = new VisualElement();
-            // element.style.flexDirection = FlexDirection.Row;
-            // element.style.flexGrow = 1;
-            // element.style.height = 50;
-            // element.style.borderBottomWidth = 1;
-            // element.style.borderBottomColor = new Color(0.1f, 0.1f, 0.1f);
-            // element.style.paddingLeft = 5;
-            // element.style.paddingRight = 5;
-            //
-            // var characterPortraitImage = new Image();
-            // characterPortraitImage.name = "CharacterPortraitImage";
-            // characterPortraitImage.style.flexGrow = 1;
-            // characterPortraitImage.style.width = 50;
-            // characterPortraitImage.style.height = 50;
-            // element.Add(characterPortraitImage);
-            //
-            // // var characterIndexLabel = new Label();
-            // // characterIndexLabel.name = "CharacterIndexLabel";
-            // // characterIndexLabel.style.width = 30;
-            // // characterIndexLabel.style.unityTextAlign = TextAnchor.MiddleLeft;
-            // // element.Add(characterIndexLabel);
-            //
-            // var characterNameLabel = new Label();
-            // characterNameLabel.name = "CharacterNameLabel";
-            // characterNameLabel.style.paddingLeft = 10;
-            // characterNameLabel.style.flexGrow = 1;
-            // characterNameLabel.style.unityTextAlign = TextAnchor.MiddleLeft;
-            // element.Add(characterNameLabel);
-            //
-            // return element;
         }
 
         private void BindListItem(VisualElement element, int index)
@@ -196,9 +212,6 @@ namespace TurnBasedSystem.Editor
             
             var portraitImage = element.Q<Image>("CharacterPortraitImage");
             portraitImage.sprite = character.CharacterModel.Portrait;
-            
-            // var indexLabel = element.Q<Label>("CharacterIndexLabel");
-            // indexLabel.text = ((int)character.CharacterModel.Character).ToString();
             
             var nameLabel = element.Q<Label>("CharacterNameLabel");
             nameLabel.text = character.CharacterModel.Character.ToString();
@@ -215,7 +228,7 @@ namespace TurnBasedSystem.Editor
             }
             
             _selectedCharacter = selectedItems.First() as CharacterScriptableObject;
-            _deleteButton.SetEnabled(true);
+            _deleteButton.SetEnabled(!_protectedCharacters.Contains(_selectedCharacter.CharacterModel.Character));
             ShowCharacterDetails(_selectedCharacter);
         }
 
@@ -306,9 +319,22 @@ namespace TurnBasedSystem.Editor
             if (_charactersScriptableObject == null)
                 return;
             
-            _currentCharacterList = _currentCharacterGroup == CharacterGroup.Hero 
-                ? _charactersScriptableObject.Heroes.ToList() 
-                : _charactersScriptableObject.Enemies.ToList();
+            switch (_currentCharacterGroup)
+            {
+                case CharacterGroup.Hero:
+                    _currentCharacterList = _charactersScriptableObject.Heroes.ToList();
+                    break;
+                case CharacterGroup.Enemy:
+                    _currentCharacterList = _charactersScriptableObject.Enemies.ToList();
+                    break;
+                case CharacterGroup.Boss:
+                    _currentCharacterList = _charactersScriptableObject.Heroes
+                        .Concat(_charactersScriptableObject.Enemies)
+                        .Where(c => (int)c.CharacterModel.Character >= (int)CharacterGroup.Boss && 
+                               (int)c.CharacterModel.Character < (int)CharacterGroup.Boss + 10000)
+                        .ToList();
+                    break;
+            }
             
             FilterCharacterList(_searchField.value);
         }
@@ -338,7 +364,7 @@ namespace TurnBasedSystem.Editor
             
             switch (_sortDropdown.index)
             {
-                case 0: // Character
+                case 0: // Name
                     _filteredCharacterList = _filteredCharacterList
                         .OrderBy(c => c.CharacterModel.Character)
                         .ToList();
@@ -369,92 +395,129 @@ namespace TurnBasedSystem.Editor
             if (_charactersScriptableObject == null)
                 return;
             
-            var newCharacter = CreateCharacterScriptableObject();
-            if (newCharacter != null)
+            CharacterCreationPopup.Show(this);
+        }
+
+        public void AddCharacterToList(CharacterScriptableObject newCharacter)
+        {
+            if (_charactersScriptableObject == null || newCharacter == null)
+                return;
+                
+            switch (newCharacter.CharacterModel.CharacterGroup)
             {
-                if (_currentCharacterGroup == CharacterGroup.Hero)
-                {
+                case CharacterGroup.Hero:
                     var heroes = _charactersScriptableObject.Heroes.ToList();
                     heroes.Add(newCharacter);
                     _charactersScriptableObject.Heroes = heroes.ToArray();
-                }
-                else
-                {
+                    if (_currentCharacterGroup == CharacterGroup.Hero)
+                    {
+                        _currentCharacterList = heroes;
+                    }
+                    break;
+                    
+                case CharacterGroup.Enemy:
                     var enemies = _charactersScriptableObject.Enemies.ToList();
                     enemies.Add(newCharacter);
                     _charactersScriptableObject.Enemies = enemies.ToArray();
+                    if (_currentCharacterGroup == CharacterGroup.Enemy)
+                    {
+                        _currentCharacterList = enemies;
+                    }
+                    break;
+                    
+                case CharacterGroup.Boss:
+                    var bosses = _charactersScriptableObject.Enemies.ToList();
+                    bosses.Add(newCharacter);
+                    _charactersScriptableObject.Enemies = bosses.ToArray();
+                    break;
+            }
+            
+            EditorUtility.SetDirty(_charactersScriptableObject);
+            AssetDatabase.SaveAssets();
+            
+            RefreshCharacterList();
+            
+            var newIndex = _filteredCharacterList.FindIndex(c => c.CharacterModel.Character == newCharacter.CharacterModel.Character);
+            if (newIndex >= 0)
+            {
+                _characterListView.SetSelection(newIndex);
+            }
+        }
+
+        private void OnDeleteButtonClicked()
+        {
+            if (_selectedCharacter == null || _charactersScriptableObject == null)
+                return;
+            
+            if (_protectedCharacters.Contains(_selectedCharacter.CharacterModel.Character))
+            {
+                EditorUtility.DisplayDialog("Protected Character", 
+                    $"Cannot delete {_selectedCharacter.CharacterModel.Character} as it is a protected character.", 
+                    "OK");
+                return;
+            }
+            
+            if (EditorUtility.DisplayDialog("Delete Character", 
+                $"Are you sure you want to delete {_selectedCharacter.CharacterModel.Character}?", 
+                "Yes", "No"))
+            {
+                RemoveCharacterFromEnum(_selectedCharacter.CharacterModel.Character);
+                
+                switch (_selectedCharacter.CharacterModel.CharacterGroup)
+                {
+                    case CharacterGroup.Hero:
+                        var heroes = _charactersScriptableObject.Heroes.ToList();
+                        heroes.Remove(_selectedCharacter);
+                        _charactersScriptableObject.Heroes = heroes.ToArray();
+                        break;
+                        
+                    case CharacterGroup.Enemy:
+                    case CharacterGroup.Boss:
+                        var enemies = _charactersScriptableObject.Enemies.ToList();
+                        enemies.Remove(_selectedCharacter);
+                        _charactersScriptableObject.Enemies = enemies.ToArray();
+                        break;
+                }
+                
+                var assetPath = AssetDatabase.GetAssetPath(_selectedCharacter);
+                if (!string.IsNullOrEmpty(assetPath))
+                {
+                    AssetDatabase.DeleteAsset(assetPath);
                 }
                 
                 EditorUtility.SetDirty(_charactersScriptableObject);
                 AssetDatabase.SaveAssets();
                 
                 RefreshCharacterList();
-                _characterListView.SetSelection(_filteredCharacterList.Count - 1);
+                ShowNoSelectionMessage();
             }
         }
-
-        private void OnDeleteButtonClicked()
+        
+        private void RemoveCharacterFromEnum(Character characterToRemove)
         {
-            EditorUtility.SetDirty(_charactersScriptableObject);
-            AssetDatabase.SaveAssets();
+            var characterName = characterToRemove.ToString();
             
-            RefreshCharacterList();
-            ShowNoSelectionMessage();
-        }
-
-        private CharacterScriptableObject CreateCharacterScriptableObject()
-        {
-            var newCharacter = CreateInstance<CharacterScriptableObject>();
-            newCharacter.CharacterModel = new CharacterModel
+            var lines = File.ReadAllLines(EnumFilePath);
+            var newLines = new List<string>();
+            
+            int i = 0;
+            while (i < lines.Length)
             {
-                CharacterGroup = _currentCharacterGroup,
-                // Index = GetNextCharacterIndex(),
-                Health = 100,
-                Speed = 5,
-                Skills = new List<SkillModel>()
-            };
-            
-            var path = EditorUtility.SaveFilePanelInProject(
-                "Save Character",
-                newCharacter.GetAssetName(),
-                "asset",
-                "Please enter a filename to save the Character.");
-            
-            if (!string.IsNullOrEmpty(path))
-            {
-                AssetDatabase.CreateAsset(newCharacter, path);
-                AssetDatabase.SaveAssets();
-                return newCharacter;
-            }
-            
-            return null;
-        }
-
-        private int GetNextCharacterIndex()
-        {
-            var currentCharacterGroupIndex = (int)_currentCharacterGroup;
-            var nextCharacterIndex = currentCharacterGroupIndex;
-
-            foreach (var characterScriptableObject in _currentCharacterList)
-            {
-                var currentCharacterIndex = (int)characterScriptableObject.CharacterModel.Character;
-                if (currentCharacterIndex < currentCharacterGroupIndex)
+                var line = lines[i];
+                var trimmedLine = line.Trim();
+                
+                if (trimmedLine.StartsWith(characterName + " = ") || trimmedLine.StartsWith(characterName + "="))
                 {
+                    i++;
                     continue;
                 }
-
-                if (currentCharacterIndex >= nextCharacterIndex)
-                {
-                    if (currentCharacterIndex - nextCharacterIndex > 1)
-                    {
-                        break;
-                    }
-
-                    ++nextCharacterIndex;
-                }
+                
+                newLines.Add(line);
+                i++;
             }
-
-            return nextCharacterIndex;
+            
+            File.WriteAllLines(EnumFilePath, newLines);
+            AssetDatabase.ImportAsset(EnumFilePath);
         }
     }
 }
