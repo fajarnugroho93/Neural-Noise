@@ -1,12 +1,14 @@
 using R3;
 using SpaceKomodo.Extensions;
+using SpaceKomodo.Utilities;
 using TMPro;
+using TurnBasedSystem.Characters;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace TurnBasedSystem.Characters
+namespace TurnBasedSystem.Views
 {
-    public class CharacterTurnView : MonoBehaviour
+    public class CharacterTurnView : MonoBehaviour, IInitializable<CharacterModel>
     {
         public Image portrait;
         public Slider healthSlider;

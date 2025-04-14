@@ -1,10 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
+using MessagePipe;
 using ObservableCollections;
 using R3;
 using SpaceKomodo.Extensions;
 using TurnBasedSystem.Characters;
+using TurnBasedSystem.Events;
 using UnityEngine;
+using VContainer;
 using Random = System.Random;
 
 namespace TurnBasedSystem
@@ -23,6 +26,8 @@ namespace TurnBasedSystem
         private readonly Subject<Unit> _turnOrderChanged = new();
         private List<CharacterModel> _sortedModels;
         public Observable<Unit> TurnOrderChanged => _turnOrderChanged;
+        
+        [Inject] private readonly IPublisher<CurrentTurnCharacterSelectedEvent> currentTurnCharacterSelectedPublisher;
 
         public void BeginBattle()
         {
@@ -88,7 +93,15 @@ namespace TurnBasedSystem
 
             for (var ii = 0; ii < _sortedModels.Count; ++ii)
             {
-                _sortedModels[ii].SetIsCurrentTurn(CurrentTurn.Value == ii + 1);
+                var currentCharacterModel = _sortedModels[ii];
+                var isCurrentCharacterTurn = CurrentTurn.Value == ii + 1;
+
+                if (isCurrentCharacterTurn)
+                {
+                    currentTurnCharacterSelectedPublisher.Publish(new CurrentTurnCharacterSelectedEvent(currentCharacterModel));
+                }
+                
+                _sortedModels[ii].SetIsCurrentTurn(isCurrentCharacterTurn);
             }
         }
     }

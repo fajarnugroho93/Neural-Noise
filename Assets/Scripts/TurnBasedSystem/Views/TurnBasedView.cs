@@ -1,17 +1,15 @@
 using MessagePipe;
 using R3;
 using TMPro;
-using TurnBasedSystem.Characters;
 using TurnBasedSystem.Events;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-namespace TurnBasedSystem
+namespace TurnBasedSystem.Views
 {
     public class TurnBasedView : MonoBehaviour
     {
-        public CharacterTurnView characterTurnViewPrefab;
         public Transform characterTurnParentViewTransform;
 
         public TMP_Text roundText;
