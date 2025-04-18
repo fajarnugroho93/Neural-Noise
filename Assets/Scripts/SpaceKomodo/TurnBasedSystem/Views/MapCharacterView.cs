@@ -4,6 +4,6 @@ namespace SpaceKomodo.TurnBasedSystem.Views
 {
     public class MapCharacterView : MonoBehaviour
     {
-        public Sprite Portrait;
+        public SpriteRenderer Portrait;
     }
 }

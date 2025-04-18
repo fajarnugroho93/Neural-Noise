@@ -20,15 +20,15 @@ namespace SpaceKomodo.TurnBasedSystem.Maps
 
         private MapGridModel[,] CreateMapGridsModel(
             MapGrid mapGrid, 
-            int column, 
-            int row)
+            int maxColumn, 
+            int maxRow)
         {
-            var mapGridsModel = new MapGridModel[column, row];
-            for (var ii = 0; ii < column; ++ii)
+            var mapGridsModel = new MapGridModel[maxColumn, maxRow];
+            for (var currentColumn = 0; currentColumn < maxColumn; ++currentColumn)
             {
-                for (var jj = 0; jj < row; ++jj)
+                for (var currentRow = 0; currentRow < maxRow; ++currentRow)
                 {
-                    mapGridsModel[ii, jj] = new MapGridModel(mapGrid, column, row);
+                    mapGridsModel[currentColumn, currentRow] = new MapGridModel(mapGrid, currentColumn, currentRow);
                 }
             }
 

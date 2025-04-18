@@ -13,6 +13,8 @@ namespace SpaceKomodo.TurnBasedSystem.Views
     {
         public Transform CharacterTurnViewParentTransform;
         public Transform CurrentTurnSkillViewParentTransform;
+        public Transform HeroGridParentTransform;
+        public Transform EnemyGridParentTransform;
 
         public TMP_Text roundText;
         public TMP_Text turnText;
