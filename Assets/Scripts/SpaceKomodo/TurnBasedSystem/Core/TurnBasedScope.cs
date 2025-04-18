@@ -29,6 +29,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             builder.Register<IViewFactory<CharacterModel, CharacterTurnView>, ViewFactory<CharacterModel, CharacterTurnView>>(Lifetime.Singleton);
             builder.Register<IViewFactory<SkillModel, CurrentTurnSkillView>, ViewFactory<SkillModel, CurrentTurnSkillView>>(Lifetime.Singleton);
             builder.Register<IMapGridViewFactory, MapGridViewFactory>(Lifetime.Singleton);
+            builder.Register<IMapCharacterViewFactory, MapCharacterViewFactory>(Lifetime.Singleton);
             builder.Register<IGridPositionService, GridPositionService>(Lifetime.Singleton);
 
             builder.RegisterComponentInHierarchy<TurnBasedModel>();
@@ -36,6 +37,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             builder.RegisterComponentInHierarchy<CurrentTurnSelectedCharacterDetailsView>();
             
             builder.RegisterEntryPoint<TurnBasedController>();
+            builder.RegisterEntryPoint<MapController>();
         }
     }
 }

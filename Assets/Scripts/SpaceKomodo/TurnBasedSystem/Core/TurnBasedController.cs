@@ -6,7 +6,6 @@ using SpaceKomodo.Extensions;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
 using SpaceKomodo.TurnBasedSystem.Events;
-using SpaceKomodo.TurnBasedSystem.Maps;
 using SpaceKomodo.TurnBasedSystem.Views;
 using SpaceKomodo.Utilities;
 using UnityEngine;
@@ -24,8 +23,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         private readonly ISubscriber<NextTurnButtonClickedEvent> _nextTurnButtonClickedSubscriber;
         private readonly IViewFactory<CharacterModel, CharacterTurnView> _characterViewFactory;
         private readonly IViewFactory<SkillModel, CurrentTurnSkillView> _currentTurnSkillViewFactory;
-        private readonly IMapGridViewFactory _mapGridViewFactory;
-        private readonly IGridPositionService _gridPositionService;
 
         private readonly Dictionary<CharacterModel, CharacterTurnView> _characterViews = new();
         private DisposableBag _disposableBag;
@@ -37,9 +34,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             ISubscriber<CurrentTurnCharacterSelectedEvent> currentTurnCharacterSelectedSubscriber,
             ISubscriber<NextTurnButtonClickedEvent> nextTurnButtonClickedSubscriber,
             IViewFactory<CharacterModel, CharacterTurnView> characterViewFactory,
-            IViewFactory<SkillModel, CurrentTurnSkillView> currentTurnSkillViewFactory,
-            IMapGridViewFactory mapGridViewFactory,
-            IGridPositionService gridPositionService)
+            IViewFactory<SkillModel, CurrentTurnSkillView> currentTurnSkillViewFactory)
         {
             _model = model;
             _view = view;
@@ -48,8 +43,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             _nextTurnButtonClickedSubscriber = nextTurnButtonClickedSubscriber;
             _characterViewFactory = characterViewFactory;
             _currentTurnSkillViewFactory = currentTurnSkillViewFactory;
-            _mapGridViewFactory = mapGridViewFactory;
-            _gridPositionService = gridPositionService;
         }
         
         public void Start()
@@ -93,27 +86,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             }
             
             _model.SetupBattle();
-            CreateGridViews(_model.MapModel.HeroMapGrids, _view.HeroGridParentTransform);
-            CreateGridViews(_model.MapModel.EnemyMapGrids, _view.EnemyGridParentTransform);
-
             _model.BeginBattle();
-        }
-        
-        private void CreateGridViews(MapGridModel[,] grids, Transform parent)
-        {
-            var columns = grids.GetLength(0);
-            var rows = grids.GetLength(1);
-            
-            for (var x = 0; x < columns; x++)
-            {
-                for (var y = 0; y < rows; y++)
-                {
-                    var gridModel = grids[x, y];
-                    var gridView = _mapGridViewFactory.Create(gridModel, parent);
-                    
-                    gridView.transform.localPosition = _gridPositionService.GetLocalPosition(gridModel);
-                }
-            }
         }
         
         private void UpdateViewOrder()

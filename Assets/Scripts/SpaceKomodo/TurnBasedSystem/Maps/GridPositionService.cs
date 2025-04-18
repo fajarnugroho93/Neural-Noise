@@ -5,7 +5,7 @@ namespace SpaceKomodo.TurnBasedSystem.Maps
     public class GridPositionService : IGridPositionService
     {
         private readonly Vector3 _gridSize = new(1.1f, 0, -1.1f);
-        private readonly Vector3 _gridOffset = new(0.25f, 0, 0);
+        private readonly Vector3 _gridOffset = new(0.55f, 0, 0);
         
         public Vector3 GetLocalPosition(MapGridModel model)
         {

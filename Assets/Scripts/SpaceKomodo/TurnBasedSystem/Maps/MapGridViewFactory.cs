@@ -9,7 +9,7 @@ namespace SpaceKomodo.TurnBasedSystem.Maps
     {
         private readonly MapGridView _prefab;
         private readonly IObjectResolver _resolver;
-        private readonly Dictionary<MapGridModel, MapGridView> _views = new Dictionary<MapGridModel, MapGridView>();
+        private readonly Dictionary<MapGridModel, MapGridView> _views = new();
         
         public MapGridViewFactory(MapGridView prefab, IObjectResolver resolver)
         {
