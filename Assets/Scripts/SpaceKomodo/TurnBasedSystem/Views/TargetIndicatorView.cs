@@ -1,0 +1,34 @@
+using MessagePipe;
+using SpaceKomodo.TurnBasedSystem.Events;
+using SpaceKomodo.TurnBasedSystem.Maps;
+using SpaceKomodo.Utilities;
+using UnityEngine;
+using VContainer;
+
+namespace SpaceKomodo.TurnBasedSystem.Views
+{
+    public class TargetIndicatorView : MonoBehaviour, IInitializable<MapCharacterModel>
+    {
+        [SerializeField] private SpriteRenderer _indicatorSprite;
+        
+        private MapCharacterModel _model;
+        private IPublisher<TargetClickedEvent> _targetClickedPublisher;
+        
+        [Inject]
+        public void Construct(IPublisher<TargetClickedEvent> targetClickedPublisher)
+        {
+            _targetClickedPublisher = targetClickedPublisher;
+        }
+        
+        public void Initialize(MapCharacterModel model)
+        {
+            _model = model;
+            name = $"TargetIndicator_{model.CharacterModel.Character}";
+        }
+        
+        private void OnMouseDown()
+        {
+            _targetClickedPublisher.Publish(new TargetClickedEvent(_model.CharacterModel));
+        }
+    }
+}

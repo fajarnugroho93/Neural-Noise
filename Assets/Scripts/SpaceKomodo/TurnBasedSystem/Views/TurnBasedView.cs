@@ -21,7 +21,10 @@ namespace SpaceKomodo.TurnBasedSystem.Views
         public Button nextTurnButton;
         
         [Inject] private readonly TurnBasedModel turnBasedModel;
-        [Inject] private readonly IPublisher<NextTurnButtonClickedEvent> nextTurnButtonClickedPublisher;
+        [Inject] private readonly IPublisher<NextTurnButtonClickedEvent> _nextTurnButtonClickedPublisher;
+        [Inject] private readonly IPublisher<ExecuteCommandEvent> _executeCommandPublisher;
+        [Inject] private readonly IPublisher<CancelCommandEvent> _cancelCommandPublisher;
+        [Inject] private readonly ISubscriber<TargetSelectedEvent> _targetSelectedSubscriber;
 
         private void Start()
         {
@@ -29,7 +32,8 @@ namespace SpaceKomodo.TurnBasedSystem.Views
 
             void OnNextTurnButtonClicked()
             {
-                nextTurnButtonClickedPublisher.Publish(new NextTurnButtonClickedEvent());
+                _executeCommandPublisher.Publish(new ExecuteCommandEvent());
+                // _nextTurnButtonClickedPublisher.Publish(new NextTurnButtonClickedEvent());
             }
 
             turnBasedModel.CurrentRound.Subscribe(OnCurrentRoundChanged);

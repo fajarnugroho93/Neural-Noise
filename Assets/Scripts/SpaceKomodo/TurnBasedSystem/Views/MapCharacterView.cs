@@ -1,7 +1,11 @@
+using MessagePipe;
 using R3;
+using SpaceKomodo.TurnBasedSystem.Events;
 using SpaceKomodo.TurnBasedSystem.Maps;
 using SpaceKomodo.Utilities;
 using UnityEngine;
+using VContainer;
+using DisposableBag = R3.DisposableBag;
 
 namespace SpaceKomodo.TurnBasedSystem.Views
 {
@@ -13,6 +17,13 @@ namespace SpaceKomodo.TurnBasedSystem.Views
         
         private MapCharacterModel _model;
         private DisposableBag _disposableBag;
+        private IPublisher<TargetClickedEvent> _targetClickedPublisher;
+        
+        [Inject]
+        public void Construct(IPublisher<TargetClickedEvent> targetClickedPublisher)
+        {
+            _targetClickedPublisher = targetClickedPublisher;
+        }
         
         public void Initialize(MapCharacterModel model)
         {
@@ -46,6 +57,14 @@ namespace SpaceKomodo.TurnBasedSystem.Views
         private void OnDestroy()
         {
             _disposableBag.Dispose();
+        }
+        
+        private void OnMouseDown()
+        {
+            if (_model != null)
+            {
+                _targetClickedPublisher.Publish(new TargetClickedEvent(_model.CharacterModel));
+            }
         }
     }
 }

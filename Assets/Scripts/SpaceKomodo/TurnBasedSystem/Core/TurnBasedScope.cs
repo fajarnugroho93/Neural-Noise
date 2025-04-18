@@ -1,6 +1,7 @@
 using MessagePipe;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
+using SpaceKomodo.TurnBasedSystem.Commands;
 using SpaceKomodo.TurnBasedSystem.Maps;
 using SpaceKomodo.TurnBasedSystem.Views;
 using SpaceKomodo.Utilities;
@@ -16,6 +17,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         [SerializeField] private CurrentTurnSkillView _currentTurnSkillViewPrefab;
         [SerializeField] private MapGridView _mapGridViewPrefab;
         [SerializeField] private MapCharacterView _mapCharacterViewPrefab;
+        [SerializeField] private TargetIndicatorView _targetIndicatorPrefab;
         
         protected override void Configure(IContainerBuilder builder)
         {
@@ -23,6 +25,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             builder.RegisterInstance(_currentTurnSkillViewPrefab);
             builder.RegisterInstance(_mapGridViewPrefab);
             builder.RegisterInstance(_mapCharacterViewPrefab);
+            builder.RegisterInstance(_targetIndicatorPrefab);
             
             builder.RegisterMessageBroker<int>(builder.RegisterMessagePipe());
             
@@ -31,13 +34,17 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             builder.Register<IMapGridViewFactory, MapGridViewFactory>(Lifetime.Singleton);
             builder.Register<IMapCharacterViewFactory, MapCharacterViewFactory>(Lifetime.Singleton);
             builder.Register<IGridPositionService, GridPositionService>(Lifetime.Singleton);
+            builder.Register<IEffectExecutor, EffectExecutor>(Lifetime.Singleton);
+            builder.Register<ITargetSelector, TargetSelector>(Lifetime.Singleton);
+            builder.Register<ITargetIndicatorFactory, TargetIndicatorFactory>(Lifetime.Singleton);
 
             builder.RegisterComponentInHierarchy<TurnBasedModel>();
             builder.RegisterComponentInHierarchy<TurnBasedView>();
             builder.RegisterComponentInHierarchy<CurrentTurnSelectedCharacterDetailsView>();
             
-            builder.RegisterEntryPoint<TurnBasedController>();
             builder.RegisterEntryPoint<MapController>();
+            builder.RegisterEntryPoint<TurnCommandController>();
+            builder.RegisterEntryPoint<TurnBasedController>();
         }
     }
 }

@@ -5,6 +5,7 @@ using R3;
 using SpaceKomodo.Extensions;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
+using SpaceKomodo.TurnBasedSystem.Commands;
 using SpaceKomodo.TurnBasedSystem.Events;
 using SpaceKomodo.TurnBasedSystem.Views;
 using SpaceKomodo.Utilities;
@@ -23,6 +24,9 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         private readonly ISubscriber<NextTurnButtonClickedEvent> _nextTurnButtonClickedSubscriber;
         private readonly IViewFactory<CharacterModel, CharacterTurnView> _characterViewFactory;
         private readonly IViewFactory<SkillModel, CurrentTurnSkillView> _currentTurnSkillViewFactory;
+        private readonly IEffectExecutor _effectExecutor;
+        private readonly ISubscriber<CommandExecutedEvent> _commandExecutedSubscriber;
+        private readonly ISubscriber<EffectExecutedEvent> _effectExecutedSubscriber;
 
         private readonly Dictionary<CharacterModel, CharacterTurnView> _characterViews = new();
         private DisposableBag _disposableBag;
@@ -34,7 +38,10 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             ISubscriber<CurrentTurnCharacterSelectedEvent> currentTurnCharacterSelectedSubscriber,
             ISubscriber<NextTurnButtonClickedEvent> nextTurnButtonClickedSubscriber,
             IViewFactory<CharacterModel, CharacterTurnView> characterViewFactory,
-            IViewFactory<SkillModel, CurrentTurnSkillView> currentTurnSkillViewFactory)
+            IViewFactory<SkillModel, CurrentTurnSkillView> currentTurnSkillViewFactory,
+            IEffectExecutor effectExecutor,
+            ISubscriber<CommandExecutedEvent> commandExecutedSubscriber,
+            ISubscriber<EffectExecutedEvent> effectExecutedSubscriber)
         {
             _model = model;
             _view = view;
@@ -43,10 +50,16 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             _nextTurnButtonClickedSubscriber = nextTurnButtonClickedSubscriber;
             _characterViewFactory = characterViewFactory;
             _currentTurnSkillViewFactory = currentTurnSkillViewFactory;
+            _effectExecutor = effectExecutor;
+            _commandExecutedSubscriber = commandExecutedSubscriber;
+            _effectExecutedSubscriber = effectExecutedSubscriber;
         }
         
         public void Start()
         {
+            _commandExecutedSubscriber.Subscribe(OnCommandExecuted).AddTo(ref _disposableBag);
+            _effectExecutedSubscriber.Subscribe(OnEffectExecuted).AddTo(ref _disposableBag);
+            
             _model.TurnOrderChanged.Subscribe(_ => UpdateViewOrder());
             
             _model.models.ObserveAdd().Select(addEvent => addEvent.Value).Subscribe(OnModelAdded);
@@ -87,6 +100,36 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             
             _model.SetupBattle();
             _model.BeginBattle();
+        }
+        
+        private void OnCommandExecuted(CommandExecutedEvent evt)
+        {
+            if (evt.Command is SkillCommand skillCommand)
+            {
+                if (_model.HasNextTurn())
+                {
+                    _model.NextTurn();
+                }
+                else
+                {
+                    _model.NextRound();
+                }
+            }
+        }
+        
+        private void OnEffectExecuted(EffectExecutedEvent evt)
+        {
+            // _visualPlayer.PlayEffectVisual(
+            //     evt.Source, 
+            //     evt.Target, 
+            //     evt.Effect, 
+            //     evt.FinalValue
+            // ).Subscribe();
+            //
+            // if (_characterViews.TryGetValue(evt.Target, out var targetView))
+            // {
+            //     // Already updates via observables
+            // }
         }
         
         private void UpdateViewOrder()
