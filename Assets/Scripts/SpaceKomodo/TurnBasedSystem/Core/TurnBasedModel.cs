@@ -6,14 +6,17 @@ using R3;
 using SpaceKomodo.Extensions;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Events;
+using SpaceKomodo.TurnBasedSystem.Maps;
 using UnityEngine;
 using VContainer;
 using Random = System.Random;
 
-namespace SpaceKomodo.TurnBasedSystem
+namespace SpaceKomodo.TurnBasedSystem.Core
 {
     public class TurnBasedModel : MonoBehaviour
     {
+        [Inject] private readonly IPublisher<CurrentTurnCharacterSelectedEvent> currentTurnCharacterSelectedPublisher;
+        
         public CharacterScriptableObject[] heroes;
         public CharacterScriptableObject[] enemies;
         
@@ -21,31 +24,43 @@ namespace SpaceKomodo.TurnBasedSystem
         public ReactiveProperty<int> CurrentTurn;
 
         public readonly ObservableList<CharacterModel> models = new();
+        public readonly List<MapCharacterModel> heroMapModels = new();
+        public readonly List<MapCharacterModel> enemyMapModels = new();
         private readonly List<int> turnSpeeds = new();
         
         private readonly Subject<Unit> _turnOrderChanged = new();
         private List<CharacterModel> _sortedModels;
         public Observable<Unit> TurnOrderChanged => _turnOrderChanged;
-        
-        [Inject] private readonly IPublisher<CurrentTurnCharacterSelectedEvent> currentTurnCharacterSelectedPublisher;
 
-        public void BeginBattle()
+        public MapModel MapModel;
+        
+        public void SetupBattle()
         {
-            foreach (var hero in heroes)
-            {
-                models.Add(new CharacterModel(hero.CharacterModel));
-                turnSpeeds.Add(turnSpeeds.Count);
-            }
+            MapModel = new MapModel(2, 4);
             
-            foreach (var enemy in enemies)
-            {
-                models.Add(new CharacterModel(enemy.CharacterModel));
-                turnSpeeds.Add(turnSpeeds.Count);
-            }
+            CreateCharacterModels(MapGrid.HeroGrid, heroes, heroMapModels);
+            CreateCharacterModels(MapGrid.EnemyGrid, enemies, enemyMapModels);
 
             CurrentRound = new ReactiveProperty<int>(0);
             CurrentTurn = new ReactiveProperty<int>(0);
-            
+
+            void CreateCharacterModels(
+                MapGrid mapGrid,
+                IEnumerable<CharacterScriptableObject> characterScriptableObjects,
+                ICollection<MapCharacterModel> modelList)
+            {
+                foreach (var characterScriptableObject in characterScriptableObjects)
+                {
+                    var newModel = new CharacterModel(characterScriptableObject.CharacterModel);
+                    models.Add(newModel);
+                    modelList.Add(MapModel.AddModel(mapGrid, newModel));
+                    turnSpeeds.Add(turnSpeeds.Count);
+                }
+            }
+        }
+        
+        public void BeginBattle()
+        {
             NextRound();
         }
 

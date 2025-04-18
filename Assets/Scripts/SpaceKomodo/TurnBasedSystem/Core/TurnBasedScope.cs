@@ -7,7 +7,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace SpaceKomodo.TurnBasedSystem
+namespace SpaceKomodo.TurnBasedSystem.Core
 {
     public class TurnBasedScope : LifetimeScope
     {

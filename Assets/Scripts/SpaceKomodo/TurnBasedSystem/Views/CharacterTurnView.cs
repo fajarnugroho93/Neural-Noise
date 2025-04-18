@@ -46,11 +46,12 @@ namespace SpaceKomodo.TurnBasedSystem.Views
 
             void OnSpeedChanged((int baseSpeed, int turnSpeed) values)
             {
-                var speedBonus = values.turnSpeed == 0 ? "" : $"+ {values.turnSpeed}";
-                speedText.text = $"Speed: {values.baseSpeed} {speedBonus}";
+                var speedBonus = values.turnSpeed == 0 ? "" : $" + {values.turnSpeed}";
+                // speedText.text = $"Speed: {values.baseSpeed} {speedBonus}";
+                speedText.text = $"{values.baseSpeed}{speedBonus}";
             }
 
-            characterTurnLayoutGroup.reverseArrangement = !model.IsHero();
+            // characterTurnLayoutGroup.reverseArrangement = !model.IsHero();
             isHeroSpace.SetActive(model.IsHero());
             isEnemySpace.SetActive(!model.IsHero());
             background.color = model.IsHero() ? heroColor : enemyColor;

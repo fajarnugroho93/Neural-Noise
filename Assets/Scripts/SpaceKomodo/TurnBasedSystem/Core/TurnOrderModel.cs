@@ -3,7 +3,7 @@ using ObservableCollections;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using UnityEngine;
 
-namespace SpaceKomodo.TurnBasedSystem
+namespace SpaceKomodo.TurnBasedSystem.Core
 {
     public class TurnOrderModel
     {

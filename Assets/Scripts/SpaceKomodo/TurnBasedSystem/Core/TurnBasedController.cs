@@ -12,7 +12,7 @@ using UnityEngine;
 using VContainer.Unity;
 using DisposableBag = R3.DisposableBag;
 
-namespace SpaceKomodo.TurnBasedSystem
+namespace SpaceKomodo.TurnBasedSystem.Core
 {
     public class TurnBasedController : IStartable
     {
@@ -76,6 +76,7 @@ namespace SpaceKomodo.TurnBasedSystem
                 _currentTurnSelectedCharacterDetailsView.SetCharacterModel(characterModel);
                 
                 _disposableBag.Dispose();
+                _disposableBag = new DisposableBag();
                 
                 foreach (var skillModel in characterModel.Skills)
                 {
@@ -84,6 +85,7 @@ namespace SpaceKomodo.TurnBasedSystem
                 }
             }
             
+            _model.SetupBattle();
             _model.BeginBattle();
         }
         
