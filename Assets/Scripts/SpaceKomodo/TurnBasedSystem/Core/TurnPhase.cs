@@ -1,4 +1,4 @@
-namespace SpaceKomodo.TurnBasedSystem.Commands
+namespace SpaceKomodo.TurnBasedSystem.Core
 {
     public enum TurnPhase
     {

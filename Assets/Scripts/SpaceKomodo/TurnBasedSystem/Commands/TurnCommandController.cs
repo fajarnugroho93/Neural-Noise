@@ -115,10 +115,9 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
             if (_currentCommand.CanExecute())
             {
                 _currentCommand.Execute();
+                _targetSelector.ClearValidTargets();
                 _commandExecutedPublisher.Publish(new CommandExecutedEvent(_currentCommand));
             }
-            
-            _currentPhase.Value = TurnPhase.NextTurn;
         }
         
         private void CancelCommand()

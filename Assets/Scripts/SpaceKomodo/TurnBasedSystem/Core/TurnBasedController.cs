@@ -57,8 +57,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         
         public void Start()
         {
-            _commandExecutedSubscriber.Subscribe(OnCommandExecuted).AddTo(ref _disposableBag);
-            _effectExecutedSubscriber.Subscribe(OnEffectExecuted).AddTo(ref _disposableBag);
+            _commandExecutedSubscriber.Subscribe(OnCommandExecuted);
+            _effectExecutedSubscriber.Subscribe(OnEffectExecuted);
             
             _model.TurnOrderChanged.Subscribe(_ => UpdateViewOrder());
             

@@ -20,6 +20,11 @@ namespace SpaceKomodo.TurnBasedSystem.Views
         public TMP_Text turnText;
         public Button nextTurnButton;
         
+        public TMP_Text phaseText;
+        
+        public Button ExecuteButton;
+        public Button CancelButton;
+        
         [Inject] private readonly TurnBasedModel turnBasedModel;
         [Inject] private readonly IPublisher<NextTurnButtonClickedEvent> _nextTurnButtonClickedPublisher;
         [Inject] private readonly IPublisher<ExecuteCommandEvent> _executeCommandPublisher;
@@ -29,21 +34,43 @@ namespace SpaceKomodo.TurnBasedSystem.Views
         private void Start()
         {
             nextTurnButton.onClick.AddListener(OnNextTurnButtonClicked);
+            ExecuteButton.onClick.AddListener(OnExecuteButtonClicked);
+            CancelButton.onClick.AddListener(OnCancelButtonClicked);
+            
+            _targetSelectedSubscriber.Subscribe(OnTargetSelected).AddTo(gameObject);
+
+            turnBasedModel.CurrentRound.Subscribe(OnCurrentRoundChanged);
+            turnBasedModel.CurrentTurn.Subscribe(OnCurrentTurnChanged);
 
             void OnNextTurnButtonClicked()
             {
-                _executeCommandPublisher.Publish(new ExecuteCommandEvent());
-                // _nextTurnButtonClickedPublisher.Publish(new NextTurnButtonClickedEvent());
+                _nextTurnButtonClickedPublisher.Publish(new NextTurnButtonClickedEvent());
             }
 
-            turnBasedModel.CurrentRound.Subscribe(OnCurrentRoundChanged);
+            void OnExecuteButtonClicked()
+            {
+                _executeCommandPublisher.Publish(new ExecuteCommandEvent());
+                ExecuteButton.gameObject.SetActive(false);
+                CancelButton.gameObject.SetActive(false);
+            }
+
+            void OnCancelButtonClicked()
+            {
+                _cancelCommandPublisher.Publish(new CancelCommandEvent());
+                ExecuteButton.gameObject.SetActive(false);
+                CancelButton.gameObject.SetActive(false);
+            }
+            
+            void OnTargetSelected(TargetSelectedEvent evt)
+            {
+                ExecuteButton.gameObject.SetActive(true);
+                CancelButton.gameObject.SetActive(true);
+            }
 
             void OnCurrentRoundChanged(int currentRound)
             {
                 roundText.text = $"Round {currentRound}";
             }
-
-            turnBasedModel.CurrentTurn.Subscribe(OnCurrentTurnChanged);
 
             void OnCurrentTurnChanged(int currentTurn)
             {
