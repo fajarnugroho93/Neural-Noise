@@ -17,6 +17,28 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         private readonly List<CharacterModel> _validTargets = new();
         private readonly Dictionary<CharacterModel, TargetIndicatorView> _targetIndicators = new();
         
+        private CharacterModel _currentlySelectedTarget;
+        
+        public void SetSelectedTarget(CharacterModel target)
+        {
+            if (_currentlySelectedTarget != null && _targetIndicators.TryGetValue(_currentlySelectedTarget, out var oldIndicator))
+            {
+                oldIndicator.SetSelectedState(false);
+            }
+    
+            _currentlySelectedTarget = target;
+    
+            if (target != null && _targetIndicators.TryGetValue(target, out var newIndicator))
+            {
+                newIndicator.SetSelectedState(true);
+            }
+        }
+
+        public CharacterModel GetSelectedTarget()
+        {
+            return _currentlySelectedTarget;
+        }
+        
         public TargetSelector(
             TurnBasedModel turnModel,
             ITargetIndicatorFactory targetIndicatorFactory)
@@ -97,6 +119,7 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         public void ClearValidTargets()
         {
             _validTargets.Clear();
+            _currentlySelectedTarget = null;
             
             foreach (var indicator in _targetIndicators.Values)
             {

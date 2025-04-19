@@ -74,7 +74,9 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         
         private void OnSkillClicked(SkillClickedEvent evt)
         {
-            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectSkill && _turnModel.CurrentPhase.Value != TurnPhase.SelectTarget)
+            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectSkill 
+                && _turnModel.CurrentPhase.Value != TurnPhase.SelectTarget
+                && _turnModel.CurrentPhase.Value != TurnPhase.Confirmation)
             {
                 return;
             }
@@ -87,13 +89,14 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         
         private void OnTargetClicked(TargetClickedEvent evt)
         {
-            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectTarget)
+            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectTarget && _turnModel.CurrentPhase.Value != TurnPhase.Confirmation)
             {
                 return;
             }
     
             if (_targetSelector.IsValidTarget(evt.Target))
             {
+                _targetSelector.SetSelectedTarget(evt.Target);
                 _turnModel.SetSelectedTarget(evt.Target);
                 _targetSelectedPublisher.Publish(new TargetSelectedEvent(_turnModel.SelectedTarget));
         
@@ -122,11 +125,13 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         {
             if (_turnModel.CurrentPhase.Value == TurnPhase.SelectTarget)
             {
+                _targetSelector.SetSelectedTarget(null);
                 _turnModel.CancelSelectTarget();
                 _targetSelector.ClearValidTargets();
             }
             else if (_turnModel.CurrentPhase.Value == TurnPhase.Confirmation)
             {
+                _targetSelector.SetSelectedTarget(null);
                 _turnModel.CancelConfirmation();
             }
         }

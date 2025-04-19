@@ -25,11 +25,19 @@ namespace SpaceKomodo.TurnBasedSystem.Views
         {
             _model = model;
             name = $"TargetIndicator_{model.CharacterModel.Character}";
+            
+            SetSelectedState(false);
         }
         
         private void OnMouseDown()
         {
             _targetClickedPublisher.Publish(new TargetClickedEvent(_model.CharacterModel));
+        }
+        
+        public void SetSelectedState(bool isSelected)
+        {
+            _selectedGameObject.SetActive(isSelected);
+            _notSelectedGameObject.SetActive(!isSelected);
         }
     }
 }

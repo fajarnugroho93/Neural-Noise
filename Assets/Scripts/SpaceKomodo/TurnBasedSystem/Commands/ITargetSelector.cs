@@ -10,5 +10,6 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         bool IsValidTarget(CharacterModel target);
         List<CharacterModel> GetValidTargets();
         void ClearValidTargets();
+        void SetSelectedTarget(CharacterModel evtTarget);
     }
 }
