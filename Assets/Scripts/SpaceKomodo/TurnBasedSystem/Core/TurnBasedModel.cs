@@ -5,6 +5,8 @@ using ObservableCollections;
 using R3;
 using SpaceKomodo.Extensions;
 using SpaceKomodo.TurnBasedSystem.Characters;
+using SpaceKomodo.TurnBasedSystem.Characters.Skills;
+using SpaceKomodo.TurnBasedSystem.Commands;
 using SpaceKomodo.TurnBasedSystem.Events;
 using SpaceKomodo.TurnBasedSystem.Maps;
 using UnityEngine;
@@ -20,8 +22,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public CharacterScriptableObject[] heroes;
         public CharacterScriptableObject[] enemies;
         
-        public ReactiveProperty<int> CurrentRound = new(0);
-        public ReactiveProperty<int> CurrentTurn = new(0);
+        public readonly ReactiveProperty<int> CurrentRound = new(0);
+        public readonly ReactiveProperty<int> CurrentTurn = new(0);
 
         public readonly ObservableList<CharacterModel> models = new();
         public readonly List<MapCharacterModel> heroMapModels = new();
@@ -33,6 +35,12 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public Observable<Unit> TurnOrderChanged => _turnOrderChanged;
 
         public MapModel MapModel;
+        
+        public readonly ReactiveProperty<TurnPhase> CurrentPhase = new(TurnPhase.Idle);
+        public CharacterModel CurrentCharacter { get; private set; }
+        public SkillModel SelectedSkill { get; private set; }
+        public CharacterModel SelectedTarget { get; private set; }
+        public TurnCommand CurrentCommand { get; private set; }
         
         public void SetupBattle()
         {
@@ -115,6 +123,49 @@ namespace SpaceKomodo.TurnBasedSystem.Core
                 
                 _sortedModels[ii].SetIsCurrentTurn(isCurrentCharacterTurn);
             }
+        }
+        
+        public void SetCurrentCharacter(CharacterModel character)
+        {
+            CurrentCharacter = character;
+            CurrentPhase.Value = TurnPhase.SelectSkill;
+        }
+
+        public void SetSelectedSkill(SkillModel skill)
+        {
+            SelectedSkill = skill;
+            CurrentPhase.Value = TurnPhase.SelectTarget;
+        }
+
+        public void SetSelectedTarget(CharacterModel target)
+        {
+            SelectedTarget = target;
+        }
+
+        public void SetCurrentCommand(TurnCommand command)
+        {
+            CurrentCommand = command;
+        }
+
+        public void ClearCurrentCommand()
+        {
+            SelectedSkill = null;
+            SelectedTarget = null;
+            CurrentCommand = null;
+            CurrentPhase.Value = TurnPhase.SelectSkill;
+        }
+
+        public void ExecuteCurrentCommand()
+        {
+            CurrentPhase.Value = TurnPhase.Execute;
+        }
+
+        public void ResetTurnState()
+        {
+            SelectedSkill = null;
+            SelectedTarget = null;
+            CurrentCommand = null;
+            CurrentPhase.Value = TurnPhase.Idle;
         }
     }
 }

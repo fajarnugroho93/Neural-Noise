@@ -41,6 +41,7 @@ namespace SpaceKomodo.TurnBasedSystem.Views
 
             turnBasedModel.CurrentRound.Subscribe(OnCurrentRoundChanged);
             turnBasedModel.CurrentTurn.Subscribe(OnCurrentTurnChanged);
+            turnBasedModel.CurrentPhase.Subscribe(OnCurrentPhaseChanged);
 
             void OnNextTurnButtonClicked()
             {
@@ -75,6 +76,11 @@ namespace SpaceKomodo.TurnBasedSystem.Views
             void OnCurrentTurnChanged(int currentTurn)
             {
                 turnText.text = $"Turn {currentTurn}";
+            }
+
+            void OnCurrentPhaseChanged(TurnPhase currentPhase)
+            {
+                phaseText.text = $"Phase {currentPhase}";
             }
         }
     }

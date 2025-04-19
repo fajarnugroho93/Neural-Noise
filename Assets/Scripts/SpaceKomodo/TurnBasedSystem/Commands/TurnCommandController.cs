@@ -15,15 +15,7 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         private readonly TurnBasedModel _turnModel;
         private readonly IEffectExecutor _effectExecutor;
         private readonly ITargetSelector _targetSelector;
-        
-        private readonly ReactiveProperty<TurnPhase> _currentPhase = new(TurnPhase.Idle);
-        public Observable<TurnPhase> CurrentPhase => _currentPhase;
-        
-        private CharacterModel _currentCharacter;
-        private SkillModel _selectedSkill;
-        private CharacterModel _selectedTarget;
-        private TurnCommand _currentCommand;
-        
+
         private readonly IPublisher<SkillSelectedEvent> _skillSelectedPublisher;
         private readonly IPublisher<TargetSelectedEvent> _targetSelectedPublisher;
         private readonly IPublisher<CommandExecutedEvent> _commandExecutedPublisher;
@@ -72,63 +64,67 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
             _cancelCommandSubscriber.Subscribe(_ => CancelCommand()).AddTo(ref _disposableBag);
             _currentTurnCharacterSelectedSubscriber.Subscribe(evt => SetCurrentCharacter(evt.CharacterModel)).AddTo(ref _disposableBag);
             
-            _currentPhase.Subscribe(OnPhaseChanged).AddTo(ref _disposableBag);
+            _turnModel.CurrentPhase.Subscribe(OnPhaseChanged).AddTo(ref _disposableBag);
         }
         
         private void SetCurrentCharacter(CharacterModel character)
         {
-            _currentCharacter = character;
-            _currentPhase.Value = TurnPhase.SelectSkill;
+            _turnModel.SetCurrentCharacter(character);
         }
         
         private void OnSkillClicked(SkillClickedEvent evt)
         {
-            if (_currentPhase.Value != TurnPhase.SelectSkill) return;
-            
-            _selectedSkill = evt.Skill;
-            _skillSelectedPublisher.Publish(new SkillSelectedEvent(_selectedSkill));
-            
-            _currentPhase.Value = TurnPhase.SelectTarget;
-            
-            _targetSelector.SetValidTargets(_currentCharacter, _selectedSkill);
+            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectSkill)
+            {
+                return;
+            }
+    
+            _turnModel.SetSelectedSkill(evt.Skill);
+            _skillSelectedPublisher.Publish(new SkillSelectedEvent(_turnModel.SelectedSkill));
+    
+            _targetSelector.SetValidTargets(_turnModel.CurrentCharacter, _turnModel.SelectedSkill);
         }
         
         private void OnTargetClicked(TargetClickedEvent evt)
         {
-            if (_currentPhase.Value != TurnPhase.SelectTarget) return;
-            
+            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectTarget)
+            {
+                return;
+            }
+    
             if (_targetSelector.IsValidTarget(evt.Target))
             {
-                _selectedTarget = evt.Target;
-                _targetSelectedPublisher.Publish(new TargetSelectedEvent(_selectedTarget));
-                
-                _currentCommand = new SkillCommand(_currentCharacter, _selectedSkill, _selectedTarget, _effectExecutor);
+                _turnModel.SetSelectedTarget(evt.Target);
+                _targetSelectedPublisher.Publish(new TargetSelectedEvent(_turnModel.SelectedTarget));
+        
+                _turnModel.SetCurrentCommand(new SkillCommand(_turnModel.CurrentCharacter, _turnModel.SelectedSkill, _turnModel.SelectedTarget, _effectExecutor));
             }
         }
         
         private void ExecuteCommand()
         {
-            if (_currentPhase.Value != TurnPhase.SelectTarget || _currentCommand == null) return;
-            
-            _currentPhase.Value = TurnPhase.Execute;
-            
-            if (_currentCommand.CanExecute())
+            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectTarget || _turnModel.CurrentCommand == null)
             {
-                _currentCommand.Execute();
+                return;
+            }
+    
+            _turnModel.ExecuteCurrentCommand();
+    
+            if (_turnModel.CurrentCommand.CanExecute())
+            {
+                _turnModel.CurrentCommand.Execute();
                 _targetSelector.ClearValidTargets();
-                _commandExecutedPublisher.Publish(new CommandExecutedEvent(_currentCommand));
+                _commandExecutedPublisher.Publish(new CommandExecutedEvent(_turnModel.CurrentCommand));
             }
         }
         
         private void CancelCommand()
         {
-            switch (_currentPhase.Value)
+            switch (_turnModel.CurrentPhase.Value)
             {
                 case TurnPhase.SelectTarget:
-                    _selectedTarget = null;
-                    _currentCommand = null;
+                    _turnModel.ClearCurrentCommand();
                     _targetSelector.ClearValidTargets();
-                    _currentPhase.Value = TurnPhase.SelectSkill;
                     break;
                 case TurnPhase.SelectSkill:
                     break;
@@ -140,13 +136,11 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
             switch (phase)
             {
                 case TurnPhase.Idle:
-                    _selectedSkill = null;
-                    _selectedTarget = null;
-                    _currentCommand = null;
+                    _turnModel.ResetTurnState();
                     _targetSelector.ClearValidTargets();
                     break;
                 case TurnPhase.NextTurn:
-                    _currentPhase.Value = TurnPhase.Idle;
+                    _turnModel.CurrentPhase.Value = TurnPhase.Idle;
                     break;
             }
         }
