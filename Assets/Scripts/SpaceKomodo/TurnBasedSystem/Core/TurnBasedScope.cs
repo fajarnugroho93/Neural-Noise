@@ -42,9 +42,9 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             builder.RegisterComponentInHierarchy<TurnBasedView>();
             builder.RegisterComponentInHierarchy<CurrentTurnSelectedCharacterDetailsView>();
             
-            builder.RegisterEntryPoint<MapController>();
-            builder.RegisterEntryPoint<TurnCommandController>();
             builder.RegisterEntryPoint<TurnBasedController>();
+            builder.RegisterEntryPoint<TurnCommandController>();
+            builder.RegisterEntryPoint<MapController>();
         }
     }
 }

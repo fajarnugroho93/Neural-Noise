@@ -97,9 +97,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
                     view.gameObject.ToDisposable().AddTo(ref _disposableBag);
                 }
             }
-            
-            _model.SetupBattle();
-            _model.BeginBattle();
         }
         
         private void OnCommandExecuted(CommandExecutedEvent evt)

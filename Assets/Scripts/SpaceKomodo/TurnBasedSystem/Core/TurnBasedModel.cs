@@ -20,8 +20,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public CharacterScriptableObject[] heroes;
         public CharacterScriptableObject[] enemies;
         
-        public ReactiveProperty<int> CurrentRound;
-        public ReactiveProperty<int> CurrentTurn;
+        public ReactiveProperty<int> CurrentRound = new(0);
+        public ReactiveProperty<int> CurrentTurn = new(0);
 
         public readonly ObservableList<CharacterModel> models = new();
         public readonly List<MapCharacterModel> heroMapModels = new();
@@ -40,9 +40,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             
             CreateCharacterModels(MapGrid.HeroGrid, heroes, heroMapModels);
             CreateCharacterModels(MapGrid.EnemyGrid, enemies, enemyMapModels);
-
-            CurrentRound = new ReactiveProperty<int>(0);
-            CurrentTurn = new ReactiveProperty<int>(0);
 
             void CreateCharacterModels(
                 MapGrid mapGrid,

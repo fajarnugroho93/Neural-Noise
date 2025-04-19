@@ -41,11 +41,15 @@ namespace SpaceKomodo.TurnBasedSystem.Maps
         {
             _currentTurnCharacterSelectedSubscriber.Subscribe(evt => OnCurrentTurnCharacterSelected(evt.CharacterModel));
             
+            _model.SetupBattle();
+            
             CreateGridViews(_model.MapModel.HeroMapGrids, _view.HeroGridParentTransform);
             CreateGridViews(_model.MapModel.EnemyMapGrids, _view.EnemyGridParentTransform);
             
             CreateCharacterViews(_model.heroMapModels, _view.HeroGridParentTransform);
             CreateCharacterViews(_model.enemyMapModels, _view.EnemyGridParentTransform);
+            
+            _model.BeginBattle();
         }
         
         private void CreateGridViews(MapGridModel[,] grids, Transform parent)
