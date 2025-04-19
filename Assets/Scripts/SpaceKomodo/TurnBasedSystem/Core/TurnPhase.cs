@@ -5,6 +5,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         Idle,
         SelectSkill,
         SelectTarget,
+        Confirmation,
         Execute,
         NextTurn
     }

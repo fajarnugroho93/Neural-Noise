@@ -134,12 +134,15 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public void SetSelectedSkill(SkillModel skill)
         {
             SelectedSkill = skill;
+            SelectedTarget = null;
+            CurrentCommand = null;
             CurrentPhase.Value = TurnPhase.SelectTarget;
         }
 
         public void SetSelectedTarget(CharacterModel target)
         {
             SelectedTarget = target;
+            CurrentPhase.Value = TurnPhase.Confirmation;
         }
 
         public void SetCurrentCommand(TurnCommand command)
@@ -147,12 +150,16 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             CurrentCommand = command;
         }
 
-        public void ClearCurrentCommand()
+        public void CancelSelectTarget()
         {
-            SelectedSkill = null;
             SelectedTarget = null;
-            CurrentCommand = null;
             CurrentPhase.Value = TurnPhase.SelectSkill;
+        }
+
+        public void CancelConfirmation()
+        {
+            SelectedTarget = null;
+            CurrentPhase.Value = TurnPhase.SelectTarget;
         }
 
         public void ExecuteCurrentCommand()

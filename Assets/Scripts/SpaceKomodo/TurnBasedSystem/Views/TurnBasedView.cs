@@ -25,11 +25,13 @@ namespace SpaceKomodo.TurnBasedSystem.Views
         public Button ExecuteButton;
         public Button CancelButton;
         
+        public TMP_Text SkillDetailsNameText;
+        
         [Inject] private readonly TurnBasedModel turnBasedModel;
         [Inject] private readonly IPublisher<NextTurnButtonClickedEvent> _nextTurnButtonClickedPublisher;
         [Inject] private readonly IPublisher<ExecuteCommandEvent> _executeCommandPublisher;
         [Inject] private readonly IPublisher<CancelCommandEvent> _cancelCommandPublisher;
-        [Inject] private readonly ISubscriber<TargetSelectedEvent> _targetSelectedSubscriber;
+        [Inject] private readonly ISubscriber<SkillClickedEvent> _skillClickedSubscriber;
 
         private void Start()
         {
@@ -37,11 +39,11 @@ namespace SpaceKomodo.TurnBasedSystem.Views
             ExecuteButton.onClick.AddListener(OnExecuteButtonClicked);
             CancelButton.onClick.AddListener(OnCancelButtonClicked);
             
-            _targetSelectedSubscriber.Subscribe(OnTargetSelected).AddTo(gameObject);
-
             turnBasedModel.CurrentRound.Subscribe(OnCurrentRoundChanged);
             turnBasedModel.CurrentTurn.Subscribe(OnCurrentTurnChanged);
             turnBasedModel.CurrentPhase.Subscribe(OnCurrentPhaseChanged);
+            
+            _skillClickedSubscriber.Subscribe(OnSkillClicked);
 
             void OnNextTurnButtonClicked()
             {
@@ -61,12 +63,6 @@ namespace SpaceKomodo.TurnBasedSystem.Views
                 ExecuteButton.gameObject.SetActive(false);
                 CancelButton.gameObject.SetActive(false);
             }
-            
-            void OnTargetSelected(TargetSelectedEvent evt)
-            {
-                ExecuteButton.gameObject.SetActive(true);
-                CancelButton.gameObject.SetActive(true);
-            }
 
             void OnCurrentRoundChanged(int currentRound)
             {
@@ -81,6 +77,14 @@ namespace SpaceKomodo.TurnBasedSystem.Views
             void OnCurrentPhaseChanged(TurnPhase currentPhase)
             {
                 phaseText.text = $"Phase {currentPhase}";
+                
+                CancelButton.gameObject.SetActive(currentPhase is TurnPhase.SelectTarget or TurnPhase.Confirmation);
+                ExecuteButton.gameObject.SetActive((currentPhase is TurnPhase.SelectTarget or TurnPhase.Confirmation) && turnBasedModel.SelectedTarget != null);
+            }
+            
+            void OnSkillClicked(SkillClickedEvent evt)
+            {
+                SkillDetailsNameText.text = evt.Skill.Skill.ToString();
             }
         }
     }

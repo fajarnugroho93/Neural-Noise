@@ -74,14 +74,14 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         
         private void OnSkillClicked(SkillClickedEvent evt)
         {
-            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectSkill)
+            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectSkill && _turnModel.CurrentPhase.Value != TurnPhase.SelectTarget)
             {
                 return;
             }
-    
+
+            _targetSelector.ClearValidTargets();
             _turnModel.SetSelectedSkill(evt.Skill);
             _skillSelectedPublisher.Publish(new SkillSelectedEvent(_turnModel.SelectedSkill));
-    
             _targetSelector.SetValidTargets(_turnModel.CurrentCharacter, _turnModel.SelectedSkill);
         }
         
@@ -103,7 +103,7 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         
         private void ExecuteCommand()
         {
-            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectTarget || _turnModel.CurrentCommand == null)
+            if (_turnModel.CurrentPhase.Value != TurnPhase.Confirmation || _turnModel.CurrentCommand == null)
             {
                 return;
             }
@@ -120,14 +120,14 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         
         private void CancelCommand()
         {
-            switch (_turnModel.CurrentPhase.Value)
+            if (_turnModel.CurrentPhase.Value == TurnPhase.SelectTarget)
             {
-                case TurnPhase.SelectTarget:
-                    _turnModel.ClearCurrentCommand();
-                    _targetSelector.ClearValidTargets();
-                    break;
-                case TurnPhase.SelectSkill:
-                    break;
+                _turnModel.CancelSelectTarget();
+                _targetSelector.ClearValidTargets();
+            }
+            else if (_turnModel.CurrentPhase.Value == TurnPhase.Confirmation)
+            {
+                _turnModel.CancelConfirmation();
             }
         }
         

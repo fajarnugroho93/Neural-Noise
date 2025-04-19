@@ -9,7 +9,8 @@ namespace SpaceKomodo.TurnBasedSystem.Views
 {
     public class TargetIndicatorView : MonoBehaviour, IInitializable<MapCharacterModel>
     {
-        [SerializeField] private SpriteRenderer _indicatorSprite;
+        [SerializeField] private GameObject _selectedGameObject;
+        [SerializeField] private GameObject _notSelectedGameObject;
         
         private MapCharacterModel _model;
         private IPublisher<TargetClickedEvent> _targetClickedPublisher;

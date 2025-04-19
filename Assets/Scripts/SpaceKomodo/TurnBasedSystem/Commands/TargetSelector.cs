@@ -14,8 +14,8 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         private readonly TurnBasedModel _turnModel;
         private readonly ITargetIndicatorFactory _targetIndicatorFactory;
         
-        private List<CharacterModel> _validTargets = new();
-        private Dictionary<CharacterModel, TargetIndicatorView> _targetIndicators = new();
+        private readonly List<CharacterModel> _validTargets = new();
+        private readonly Dictionary<CharacterModel, TargetIndicatorView> _targetIndicators = new();
         
         public TargetSelector(
             TurnBasedModel turnModel,
