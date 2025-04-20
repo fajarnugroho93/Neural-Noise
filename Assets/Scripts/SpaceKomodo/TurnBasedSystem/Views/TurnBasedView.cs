@@ -53,15 +53,11 @@ namespace SpaceKomodo.TurnBasedSystem.Views
             void OnExecuteButtonClicked()
             {
                 _executeCommandPublisher.Publish(new ExecuteCommandEvent());
-                ExecuteButton.gameObject.SetActive(false);
-                CancelButton.gameObject.SetActive(false);
             }
 
             void OnCancelButtonClicked()
             {
                 _cancelCommandPublisher.Publish(new CancelCommandEvent());
-                ExecuteButton.gameObject.SetActive(false);
-                CancelButton.gameObject.SetActive(false);
             }
 
             void OnCurrentRoundChanged(int currentRound)
@@ -78,8 +74,24 @@ namespace SpaceKomodo.TurnBasedSystem.Views
             {
                 phaseText.text = $"Phase {currentPhase}";
                 
-                CancelButton.gameObject.SetActive(currentPhase is TurnPhase.SelectTarget or TurnPhase.Confirmation);
-                ExecuteButton.gameObject.SetActive((currentPhase is TurnPhase.SelectTarget or TurnPhase.Confirmation) && turnBasedModel.SelectedTarget != null);
+                SkillDetailsNameText.gameObject.SetActive(CanShowSkillDetails());
+                CancelButton.gameObject.SetActive(CanShowCancelButton());
+                ExecuteButton.gameObject.SetActive(CanShowExecuteButton());
+                
+                bool CanShowSkillDetails()
+                {
+                    return currentPhase is TurnPhase.SelectSkill or TurnPhase.SelectTarget or TurnPhase.Confirmation;
+                }
+                
+                bool CanShowCancelButton()
+                {
+                    return currentPhase is TurnPhase.SelectSkill or TurnPhase.SelectTarget or TurnPhase.Confirmation;
+                }
+
+                bool CanShowExecuteButton()
+                {
+                    return currentPhase is TurnPhase.Confirmation;
+                }
             }
             
             void OnSkillClicked(SkillClickedEvent evt)

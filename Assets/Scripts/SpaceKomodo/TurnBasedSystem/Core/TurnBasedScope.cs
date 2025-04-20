@@ -35,8 +35,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             builder.Register<IMapCharacterViewFactory, MapCharacterViewFactory>(Lifetime.Singleton);
             builder.Register<IGridPositionService, GridPositionService>(Lifetime.Singleton);
             builder.Register<IEffectExecutor, EffectExecutor>(Lifetime.Singleton);
-            builder.Register<ITargetSelector, TargetSelector>(Lifetime.Singleton);
             builder.Register<ITargetIndicatorFactory, TargetIndicatorFactory>(Lifetime.Singleton);
+            builder.Register<ITargetIndicatorManager, TargetIndicatorManager>(Lifetime.Singleton);
 
             builder.RegisterComponentInHierarchy<TurnBasedModel>();
             builder.RegisterComponentInHierarchy<TurnBasedView>();

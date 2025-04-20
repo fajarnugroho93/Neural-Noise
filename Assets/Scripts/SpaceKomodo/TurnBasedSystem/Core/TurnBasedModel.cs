@@ -18,6 +18,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
     public class TurnBasedModel : MonoBehaviour
     {
         [Inject] private readonly IPublisher<CurrentTurnCharacterSelectedEvent> currentTurnCharacterSelectedPublisher;
+        [Inject] private readonly IEffectExecutor _effectExecutor;
         
         public CharacterScriptableObject[] heroes;
         public CharacterScriptableObject[] enemies;
@@ -42,6 +43,9 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public CharacterModel SelectedTarget { get; private set; }
         public TurnCommand CurrentCommand { get; private set; }
         
+        private readonly List<CharacterModel> _validTargets = new();
+        public IReadOnlyList<CharacterModel> ValidTargets => _validTargets;
+
         public void SetupBattle()
         {
             MapModel = new MapModel(2, 4);
@@ -123,6 +127,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
                 
                 _sortedModels[ii].SetIsCurrentTurn(isCurrentCharacterTurn);
             }
+            
+            ResetTurnState();
         }
         
         public void SetCurrentCharacter(CharacterModel character)
@@ -137,23 +143,85 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             SelectedTarget = null;
             CurrentCommand = null;
             CurrentPhase.Value = TurnPhase.SelectTarget;
+            
+            DetermineValidTargets();
         }
 
         public void SetSelectedTarget(CharacterModel target)
         {
+            if (!IsValidTarget(target)) return;
+            
             SelectedTarget = target;
             CurrentPhase.Value = TurnPhase.Confirmation;
+            
+            CreateCommand();
+        }
+        
+        private void CreateCommand()
+        {
+            if (CurrentCharacter == null || SelectedSkill == null || SelectedTarget == null) return;
+            
+            CurrentCommand = new SkillCommand(CurrentCharacter, SelectedSkill, SelectedTarget, _effectExecutor);
         }
 
-        public void SetCurrentCommand(TurnCommand command)
+        public bool IsValidTarget(CharacterModel target)
         {
-            CurrentCommand = command;
+            return _validTargets.Contains(target);
+        }
+
+        public void DetermineValidTargets()
+        {
+            ClearValidTargets();
+            
+            if (CurrentCharacter == null || SelectedSkill == null) return;
+            
+            switch (SelectedSkill.Target)
+            {
+                case SkillTarget.Self:
+                    _validTargets.Add(CurrentCharacter);
+                    break;
+                    
+                case SkillTarget.SingleAlly:
+                    foreach (var model in models)
+                    {
+                        if (model != CurrentCharacter && model.IsHero() == CurrentCharacter.IsHero())
+                        {
+                            _validTargets.Add(model);
+                        }
+                    }
+                    break;
+                    
+                case SkillTarget.SingleEnemy:
+                    foreach (var model in models)
+                    {
+                        if (model.IsHero() != CurrentCharacter.IsHero())
+                        {
+                            _validTargets.Add(model);
+                        }
+                    }
+                    break;
+            }
+        }
+        
+        public void ClearValidTargets()
+        {
+            _validTargets.Clear();
+        }
+
+        public void CancelSelectSkill()
+        {
+            SelectedSkill = null;
+            SelectedTarget = null;
+            CurrentPhase.Value = TurnPhase.Idle;
+            ClearValidTargets();
         }
 
         public void CancelSelectTarget()
         {
+            SelectedSkill = null;
             SelectedTarget = null;
-            CurrentPhase.Value = TurnPhase.SelectSkill;
+            CurrentPhase.Value = TurnPhase.Idle;
+            ClearValidTargets();
         }
 
         public void CancelConfirmation()
@@ -164,7 +232,24 @@ namespace SpaceKomodo.TurnBasedSystem.Core
 
         public void ExecuteCurrentCommand()
         {
+            if (CurrentCommand == null || !CurrentCommand.CanExecute()) return;
+            
             CurrentPhase.Value = TurnPhase.Execute;
+            CurrentCommand.Execute();
+            
+            TransitionToNextTurn();
+        }
+        
+        private void TransitionToNextTurn()
+        {
+            if (HasNextTurn())
+            {
+                NextTurn();
+            }
+            else
+            {
+                NextRound();
+            }
         }
 
         public void ResetTurnState()
@@ -172,6 +257,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             SelectedSkill = null;
             SelectedTarget = null;
             CurrentCommand = null;
+            ClearValidTargets();
             CurrentPhase.Value = TurnPhase.Idle;
         }
     }
