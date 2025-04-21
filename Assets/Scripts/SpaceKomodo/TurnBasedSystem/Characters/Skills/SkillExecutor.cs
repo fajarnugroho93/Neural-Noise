@@ -23,19 +23,20 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
         
         public void ExecuteSkill(CharacterModel source, CharacterModel primaryTarget, SkillModel skill)
         {
-            foreach (var effectModel in skill.Effects)
+            foreach (var effectContainer in skill.Effects)
             {
+                var effectModel = effectContainer.GetEffectModel();
                 var effect = _effectFactory.CreateEffect(effectModel.EffectType);
                 var targets = effect.GetTargets(source, primaryTarget, effectModel.Target);
                 
                 foreach (var target in targets)
                 {
-                    effect.Execute(source, target, effectModel.Parameters);
+                    effect.Execute(source, target, effectModel);
                     
                     _effectExecutedPublisher.Publish(new EffectExecutedEvent(
                         source, 
                         target, 
-                        effectModel,
+                        null, // Old SkillEffectModel reference, now removed
                         0));
                 }
             }
@@ -48,14 +49,15 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
         {
             var result = new Dictionary<CharacterModel, List<Dictionary<string, object>>>();
             
-            foreach (var effectModel in skill.Effects)
+            foreach (var effectContainer in skill.Effects)
             {
+                var effectModel = effectContainer.GetEffectModel();
                 var effect = _effectFactory.CreateEffect(effectModel.EffectType);
                 var targets = effect.GetTargets(source, primaryTarget, effectModel.Target);
                 
                 foreach (var target in targets)
                 {
-                    var prediction = effect.PredictEffect(source, target, effectModel.Parameters);
+                    var prediction = effect.PredictEffect(source, target, effectModel);
                     
                     if (!result.TryGetValue(target, out var predictions))
                     {

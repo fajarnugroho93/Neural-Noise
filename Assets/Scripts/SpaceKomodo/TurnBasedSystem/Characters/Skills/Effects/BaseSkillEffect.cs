@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
+namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
 {
     public abstract class BaseSkillEffect : ISkillEffect
     {
         public abstract EffectType Type { get; }
         
-        public abstract void Execute(CharacterModel source, CharacterModel primaryTarget, EffectParameters parameters);
+        public abstract void Execute(CharacterModel source, CharacterModel primaryTarget, BaseSkillEffectModel effectModel);
         
-        public abstract Dictionary<string, object> PredictEffect(CharacterModel source, CharacterModel primaryTarget, EffectParameters parameters);
+        public abstract Dictionary<string, object> PredictEffect(CharacterModel source, CharacterModel primaryTarget, BaseSkillEffectModel effectModel);
         
         public List<CharacterModel> GetTargets(CharacterModel source, CharacterModel primaryTarget, RelativeTarget relativeTarget)
         {

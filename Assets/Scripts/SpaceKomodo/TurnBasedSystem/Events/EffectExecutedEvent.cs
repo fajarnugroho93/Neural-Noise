@@ -1,5 +1,6 @@
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
+using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
 
 namespace SpaceKomodo.TurnBasedSystem.Events
 {
@@ -7,13 +8,13 @@ namespace SpaceKomodo.TurnBasedSystem.Events
     {
         public readonly CharacterModel Source;
         public readonly CharacterModel Target;
-        public readonly SkillEffectModel Effect;
+        public readonly BaseSkillEffectModel Effect;
         public readonly int FinalValue;
         
         public EffectExecutedEvent(
             CharacterModel source, 
             CharacterModel target, 
-            SkillEffectModel effect,
+            BaseSkillEffectModel effect,
             int finalValue)
         {
             Source = source;

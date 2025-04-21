@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
 using UnityEngine;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
@@ -11,7 +12,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
         public Skill Skill;
         public Sprite Portrait;
         public SkillTarget Target;
-        public List<SkillEffectModel> Effects;
+        public List<SkillEffectModelContainer> Effects = new List<SkillEffectModelContainer>();
     
         public object Clone()
         {
@@ -21,8 +22,16 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
                 Portrait = Portrait,
                 Target = Target,
                 Effects = Effects?
-                    .Select(skillEffectModel => (SkillEffectModel)skillEffectModel.Clone()).ToList() ?? new List<SkillEffectModel>()
+                              .Select(effectContainer => (SkillEffectModelContainer)effectContainer.Clone()).ToList() 
+                          ?? new List<SkillEffectModelContainer>()
             };
+        }
+        
+        public void AddEffect(BaseSkillEffectModel effectModel)
+        {
+            var container = new SkillEffectModelContainer();
+            container.SetEffectModel(effectModel);
+            Effects.Add(container);
         }
     }
 }

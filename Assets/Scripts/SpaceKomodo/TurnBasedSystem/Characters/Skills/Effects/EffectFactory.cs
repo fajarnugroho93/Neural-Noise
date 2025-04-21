@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
 
-namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
+namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
 {
     public class EffectFactory
     {

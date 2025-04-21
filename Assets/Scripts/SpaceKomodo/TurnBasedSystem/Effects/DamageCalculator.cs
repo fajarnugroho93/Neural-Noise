@@ -1,5 +1,6 @@
 using R3;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
+using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
 using UnityEngine;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters
