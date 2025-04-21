@@ -1,5 +1,6 @@
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
+using SpaceKomodo.TurnBasedSystem.Commands;
 
 namespace SpaceKomodo.TurnBasedSystem.Commands
 {
@@ -8,20 +9,21 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         private readonly CharacterModel _source;
         private readonly SkillModel _skill;
         private readonly CharacterModel _target;
-        private readonly IEffectExecutor _effectExecutor;
+        private readonly SkillExecutor _skillExecutor;
         
         private int _targetOriginalHealth;
+        private int _targetOriginalShield;
         
         public SkillCommand(
             CharacterModel source, 
             SkillModel skill, 
             CharacterModel target,
-            IEffectExecutor effectExecutor)
+            SkillExecutor skillExecutor)
         {
             _source = source;
             _skill = skill;
             _target = target;
-            _effectExecutor = effectExecutor;
+            _skillExecutor = skillExecutor;
         }
         
         public override bool CanExecute()
@@ -34,16 +36,15 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
             if (!CanExecute()) return;
             
             _targetOriginalHealth = _target.CurrentHealth.Value;
+            _targetOriginalShield = _target.CurrentShield.Value;
             
-            foreach (var effect in _skill.Effects)
-            {
-                _effectExecutor.ExecuteEffect(_source, _target, effect);
-            }
+            _skillExecutor.ExecuteSkill(_source, _target, _skill);
         }
         
         public override void Undo()
         {
             _target.CurrentHealth.Value = _targetOriginalHealth;
+            _target.CurrentShield.Value = _targetOriginalShield;
         }
         
         public override string GetDescription()

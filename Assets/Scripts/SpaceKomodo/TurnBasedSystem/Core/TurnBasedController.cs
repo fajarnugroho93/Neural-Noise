@@ -24,7 +24,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         private readonly ISubscriber<NextTurnButtonClickedEvent> _nextTurnButtonClickedSubscriber;
         private readonly IViewFactory<CharacterModel, CharacterTurnView> _characterViewFactory;
         private readonly IViewFactory<SkillModel, CurrentTurnSkillView> _currentTurnSkillViewFactory;
-        private readonly IEffectExecutor _effectExecutor;
+        private readonly SkillExecutor _skillExecutor;
         private readonly ISubscriber<CommandExecutedEvent> _commandExecutedSubscriber;
         private readonly ISubscriber<EffectExecutedEvent> _effectExecutedSubscriber;
 
@@ -39,7 +39,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             ISubscriber<NextTurnButtonClickedEvent> nextTurnButtonClickedSubscriber,
             IViewFactory<CharacterModel, CharacterTurnView> characterViewFactory,
             IViewFactory<SkillModel, CurrentTurnSkillView> currentTurnSkillViewFactory,
-            IEffectExecutor effectExecutor,
+            SkillExecutor skillExecutor,
             ISubscriber<CommandExecutedEvent> commandExecutedSubscriber,
             ISubscriber<EffectExecutedEvent> effectExecutedSubscriber)
         {
@@ -50,7 +50,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             _nextTurnButtonClickedSubscriber = nextTurnButtonClickedSubscriber;
             _characterViewFactory = characterViewFactory;
             _currentTurnSkillViewFactory = currentTurnSkillViewFactory;
-            _effectExecutor = effectExecutor;
+            _skillExecutor = skillExecutor;
             _commandExecutedSubscriber = commandExecutedSubscriber;
             _effectExecutedSubscriber = effectExecutedSubscriber;
         }
@@ -116,17 +116,15 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         
         private void OnEffectExecuted(EffectExecutedEvent evt)
         {
-            // _visualPlayer.PlayEffectVisual(
-            //     evt.Source, 
-            //     evt.Target, 
-            //     evt.Effect, 
-            //     evt.FinalValue
-            // ).Subscribe();
-            //
-            // if (_characterViews.TryGetValue(evt.Target, out var targetView))
-            // {
-            //     // Already updates via observables
-            // }
+            UpdateCharacterViews();
+        }
+        
+        private void UpdateCharacterViews()
+        {
+            foreach (var characterView in _characterViews.Values)
+            {
+                characterView.transform.SetSiblingIndex(characterView.GetComponent<CharacterTurnView>().GetComponentInParent<Transform>().GetSiblingIndex());
+            }
         }
         
         private void UpdateViewOrder()

@@ -22,6 +22,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters
         public readonly ReactiveProperty<int> CurrentMaxHealth;
         
         public readonly ReactiveProperty<int> CurrentHealth;
+        public ReactiveProperty<int> CurrentShield;
         
         public readonly ReactiveProperty<int> BaseSpeed;
         public readonly ReactiveProperty<int> TurnSpeed;
@@ -49,6 +50,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters
             CurrentMaxHealth = new ReactiveProperty<int>(Health);
             
             CurrentHealth = new ReactiveProperty<int>(Health);
+            CurrentShield = new ReactiveProperty<int>(0);
             
             BaseSpeed = new ReactiveProperty<int>(Speed);
             TurnSpeed = new ReactiveProperty<int>(0);

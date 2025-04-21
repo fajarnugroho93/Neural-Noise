@@ -5,15 +5,17 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
     [Serializable]
     public class SkillEffectModel : ICloneable
     {
-        public SkillEffect Effect;
-        public int Value;
+        public EffectType EffectType;
+        public RelativeTarget Target;
+        public EffectParameters Parameters = new EffectParameters();
     
         public object Clone()
         {
             return new SkillEffectModel
             {
-                Effect = Effect,
-                Value = Value
+                EffectType = EffectType,
+                Target = Target,
+                Parameters = Parameters
             };
         }
     }

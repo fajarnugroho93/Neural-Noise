@@ -18,7 +18,9 @@ namespace SpaceKomodo.TurnBasedSystem.Core
     public class TurnBasedModel : MonoBehaviour
     {
         [Inject] private readonly IPublisher<CurrentTurnCharacterSelectedEvent> currentTurnCharacterSelectedPublisher;
-        [Inject] private readonly IEffectExecutor _effectExecutor;
+        [Inject] private readonly SkillExecutor _skillExecutor;
+        [Inject] private readonly BattleModel _battleModel;
+        [Inject] private readonly StatusEffectManager _statusEffectManager;
         
         public CharacterScriptableObject[] heroes;
         public CharacterScriptableObject[] enemies;
@@ -53,6 +55,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             CreateCharacterModels(MapGrid.HeroGrid, heroes, heroMapModels);
             CreateCharacterModels(MapGrid.EnemyGrid, enemies, enemyMapModels);
 
+            _battleModel.RegisterAllCharacters(this);
+
             void CreateCharacterModels(
                 MapGrid mapGrid,
                 IEnumerable<CharacterScriptableObject> characterScriptableObjects,
@@ -86,6 +90,9 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             }
 
             RecalculateTurnOrder();
+            
+            _statusEffectManager.ProcessRound();
+            
             NextTurn();
         }
         
@@ -161,7 +168,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         {
             if (CurrentCharacter == null || SelectedSkill == null || SelectedTarget == null) return;
             
-            CurrentCommand = new SkillCommand(CurrentCharacter, SelectedSkill, SelectedTarget, _effectExecutor);
+            CurrentCommand = new SkillCommand(CurrentCharacter, SelectedSkill, SelectedTarget, _skillExecutor);
         }
 
         public bool IsValidTarget(CharacterModel target)
@@ -234,8 +241,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         {
             if (CurrentCommand == null || !CurrentCommand.CanExecute()) return;
             
-            CurrentPhase.Value = TurnPhase.Execute;
             CurrentCommand.Execute();
+            CurrentPhase.Value = TurnPhase.Execute;
             
             TransitionToNextTurn();
         }
