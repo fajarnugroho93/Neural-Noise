@@ -12,15 +12,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public TurnOrderModel(ObservableList<CharacterModel> models)
         {
             _models = models;
-            
-            // _models.ObserveElementObservableProperty(x => x.CurrentSpeed)
-            //     .Subscribe(_ => RecalculateTurnOrder());
-            //     
-            // _models.ObserveAdd()
-            //     .Subscribe(_ => RecalculateTurnOrder());
-            //     
-            // _models.ObserveRemove()
-            //     .Subscribe(_ => RecalculateTurnOrder());
         }
         
         public void ShiftTurnOrder(CharacterModel model, int shift)
@@ -68,7 +59,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             }
             
             model.TurnOrder.Value = targetTurnOrder;
-            // _turnOrderChanged.OnNext(Unit.Default);
         }
     }
 }

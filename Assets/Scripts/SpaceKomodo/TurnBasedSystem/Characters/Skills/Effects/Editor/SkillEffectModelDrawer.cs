@@ -49,18 +49,14 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
             var effectTypeProperty = property.FindPropertyRelative("EffectType");
             var serializedDataProperty = property.FindPropertyRelative("_serializedData");
             
-            // Header rect
             var headerRect = new Rect(position.x, position.y, position.width, HeaderHeight);
             
-            // Draw background
             EditorGUI.DrawRect(new Rect(headerRect.x, headerRect.y, headerRect.width, headerRect.height), 
                 new Color(0.1f, 0.1f, 0.1f, 0.3f));
             
-            // Draw foldout
             var foldoutRect = new Rect(headerRect.x + 10, headerRect.y, 20, headerRect.height);
             _foldout = EditorGUI.Foldout(foldoutRect, _foldout, GUIContent.none);
             
-            // Draw effect type
             var effectType = (EffectType)effectTypeProperty.enumValueIndex;
             var effectTypeRect = new Rect(foldoutRect.x + 15, headerRect.y + 2, 120, EditorGUIUtility.singleLineHeight);
             var newEffectType = (EffectType)EditorGUI.EnumPopup(effectTypeRect, effectType);
@@ -80,7 +76,6 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                 return;
             }
             
-            // Create a temporary model to edit
             BaseSkillEffectModel model = null;
             if (!string.IsNullOrEmpty(serializedDataProperty.stringValue))
             {
@@ -116,16 +111,13 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                 model = SkillEffectModelFactory.CreateDefaultModel(effectType);
             }
             
-            // Calculate content area
             var contentRect = new Rect(position.x, position.y + HeaderHeight, position.width, 
                 position.height - HeaderHeight);
             
-            // Draw content
-            float yOffset = contentRect.y;
-            float lineHeight = EditorGUIUtility.singleLineHeight;
-            float spacing = SpaceBetweenElements;
+            var yOffset = contentRect.y;
+            var lineHeight = EditorGUIUtility.singleLineHeight;
+            var spacing = SpaceBetweenElements;
             
-            // Draw target field for all effect types
             var targetRect = new Rect(contentRect.x, yOffset, contentRect.width, lineHeight);
             model.Target = (RelativeTarget)EditorGUI.EnumPopup(targetRect, "Target", model.Target);
             yOffset += lineHeight + spacing;
@@ -218,7 +210,6 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                     break;
             }
             
-            // Save edited model back to serialized property
             serializedDataProperty.stringValue = JsonUtility.ToJson(model);
             
             property.serializedObject.ApplyModifiedProperties();

@@ -78,56 +78,13 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 return false;
             }
 
-            // var enumValues = Enum.GetNames(typeof(SkillEffect));
-            // if (enumValues.Contains(_effectName))
-            // {
-            //     _errorMessage = $"Effect '{_effectName}' already exists.";
-            //     return false;
-            // }
-
             return true;
         }
 
         private void CreateEffect()
         {
-            // try
-            // {
-            //     var newValue = GetNextEnumValue();
-            //     UpdateEffectEnum(newValue);
-            //
-            //     // _parentEditor.AddEffectToEnum((SkillEffect)newValue);
-            //
-            //     AssetDatabase.Refresh();
-            // }
-            // catch (Exception e)
-            // {
-            //     Debug.LogError($"Error creating effect: {e.Message}");
-            //     EditorUtility.DisplayDialog("Error", $"Failed to create effect: {e.Message}", "OK");
-            // }
+            
         }
-
-        // private int GetNextEnumValue()
-        // {
-        //     var values = Enum.GetValues(typeof(SkillEffect))
-        //         .Cast<int>()
-        //         .OrderBy(v => v)
-        //         .ToList();
-        //
-        //     if (!values.Any())
-        //     {
-        //         return 1;
-        //     }
-        //
-        //     for (int i = 1; i < int.MaxValue; i++)
-        //     {
-        //         if (!values.Contains(i))
-        //         {
-        //             return i;
-        //         }
-        //     }
-        //
-        //     return values.Max() + 1;
-        // }
 
         private void UpdateEffectEnum(int newValue)
         {

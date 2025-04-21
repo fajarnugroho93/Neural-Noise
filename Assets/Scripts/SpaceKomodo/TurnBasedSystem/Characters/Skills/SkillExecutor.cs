@@ -36,7 +36,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
                     _effectExecutedPublisher.Publish(new EffectExecutedEvent(
                         source, 
                         target, 
-                        null, // Old SkillEffectModel reference, now removed
+                        null,
                         0));
                 }
             }

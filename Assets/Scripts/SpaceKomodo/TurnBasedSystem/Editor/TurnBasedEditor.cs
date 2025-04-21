@@ -35,9 +35,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         private Skill[] _skillList = new Skill[0];
         private List<Skill> _filteredSkillList = new();
 
-        // private SkillEffect[] _effectsList = new SkillEffect[0];
-        // private List<SkillEffect> _filteredEffectsList = new();
-
         private VisualElement _mainContainer;
         private VisualElement _tabsContainer;
         private VisualElement _toolbarContainer;
@@ -77,17 +74,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         {
             Skill.None,
         };
-
-        // private readonly List<SkillEffect> _protectedEffects = new()
-        // {
-        //     SkillEffect.None,
-        //     SkillEffect.TargetDamage,
-        //     SkillEffect.TargetHeal,
-        //     SkillEffect.TargetShield,
-        //     SkillEffect.SelfDamage,
-        //     SkillEffect.SelfHeal,
-        //     SkillEffect.SelfShield,
-        // };
 
         [MenuItem("Tools/TurnBasedSystem/Turn Based Editor")]
         public static void ShowWindow()
@@ -335,15 +321,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                     }
 
                     break;
-                // case EditorTab.Effects:
-                //     if (index < _filteredEffectsList.Count)
-                //     {
-                //         var effect = _filteredEffectsList[index];
-                //         iconImage.sprite = null;
-                //         nameLabel.text = effect.ToString();
-                //     }
-                //
-                //     break;
             }
         }
 
@@ -376,12 +353,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                     _deleteButton.SetEnabled(!_protectedSkills.Contains(skill));
                     ShowSkillDetails(skill);
                     break;
-                
-                // case EditorTab.Effects:
-                //     var effect = (SkillEffect)_selectedItem;
-                //     _deleteButton.SetEnabled(!_protectedEffects.Contains(effect));
-                //     ShowEffectDetails(effect);
-                //     break;
             }
         }
 
@@ -452,34 +423,10 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             _detailsView.Add(container);
         }
 
-        // private void ShowEffectDetails(SkillEffect effect)
-        // {
-        //     _noSelectionLabel.style.display = DisplayStyle.None;
-        //     _detailsView.style.display = DisplayStyle.Flex;
-        //
-        //     _detailsView.Clear();
-        //
-        //     var container = new VisualElement();
-        //     container.style.paddingTop = 10;
-        //
-        //     var nameField = new TextField("Effect Name");
-        //     nameField.SetEnabled(false);
-        //     nameField.value = effect.ToString();
-        //     container.Add(nameField);
-        //
-        //     var valueField = new IntegerField("Value");
-        //     valueField.SetEnabled(false);
-        //     valueField.value = (int)effect;
-        //     container.Add(valueField);
-        //
-        //     _detailsView.Add(container);
-        // }
-
         private void LoadDataSources()
         {
             LoadCharactersData();
             LoadSkillsData();
-            // LoadEffectsData();
         }
 
         private void LoadCharactersData()
@@ -499,12 +446,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             _skillList = (Skill[])Enum.GetValues(typeof(Skill));
             RefreshSkillList();
         }
-
-        // private void LoadEffectsData()
-        // {
-        //     _effectsList = (SkillEffect[])Enum.GetValues(typeof(SkillEffect));
-        //     RefreshEffectsList();
-        // }
 
         private CharactersScriptableObject GetCharactersScriptableObject()
         {
@@ -563,9 +504,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 case EditorTab.Skills:
                     FilterSkillList(searchString);
                     break;
-                // case EditorTab.Effects:
-                //     FilterEffectsList(searchString);
-                //     break;
             }
             
             _sortDropdown.choices = GetSortOptionsForCurrentTab();
@@ -608,21 +546,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             }
         }
 
-        // private void FilterEffectsList(string searchString)
-        // {
-        //     if (string.IsNullOrWhiteSpace(searchString))
-        //     {
-        //         _filteredEffectsList = new List<SkillEffect>(_effectsList);
-        //     }
-        //     else
-        //     {
-        //         searchString = searchString.ToLower();
-        //         _filteredEffectsList = _effectsList
-        //             .Where(e => e.ToString().ToLower().Contains(searchString))
-        //             .ToList();
-        //     }
-        // }
-
         private void SortList()
         {
             if (_sortDropdown == null || _sortDropdown.index < 0)
@@ -636,9 +559,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 case EditorTab.Skills:
                     SortSkillList();
                     break;
-                // case EditorTab.Effects:
-                //     SortEffectsList();
-                //     break;
             }
 
             UpdateListView();
@@ -694,26 +614,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             }
         }
 
-        // private void SortEffectsList()
-        // {
-        //     if (_filteredEffectsList == null)
-        //         return;
-        //
-        //     switch (_sortDropdown.index)
-        //     {
-        //         case 0: // Value
-        //             _filteredEffectsList = _filteredEffectsList
-        //                 .OrderBy(e => (int)e)
-        //                 .ToList();
-        //             break;
-        //         case 1: // Name
-        //             _filteredEffectsList = _filteredEffectsList
-        //                 .OrderBy(e => e.ToString())
-        //                 .ToList();
-        //             break;
-        //     }
-        // }
-
         private void UpdateListView()
         {
             switch (_currentTab)
@@ -724,9 +624,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 case EditorTab.Skills:
                     _listView.itemsSource = _filteredSkillList;
                     break;
-                // case EditorTab.Effects:
-                //     _listView.itemsSource = _filteredEffectsList;
-                //     break;
             }
 
             _listView.Rebuild();
@@ -859,27 +756,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
 
         private void OnDeleteEffectClicked()
         {
-            // if (!(_selectedItem is SkillEffect effect))
-            //     return;
-            //
-            // if (_protectedEffects.Contains(effect))
-            // {
-            //     EditorUtility.DisplayDialog("Protected Effect",
-            //         $"Cannot delete {effect} as it is a protected effect.",
-            //         "OK");
-            //     return;
-            // }
-            //
-            // if (EditorUtility.DisplayDialog("Delete Effect",
-            //         $"Are you sure you want to delete {effect}? This may break references in skill data.",
-            //         "Yes", "No"))
-            // {
-            //     RemoveEnumEntry(SkillEffectEnumFilePath, effect.ToString());
-            //     AssetDatabase.SaveAssets();
-            //
-            //     LoadEffectsData();
-            //     ShowNoSelectionMessage();
-            // }
+            
         }
 
         private void RemoveEnumEntry(string filePath, string entryName)
@@ -962,16 +839,5 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 _listView.SetSelection(newIndex);
             }
         }
-
-        // public void AddEffectToEnum(SkillEffect newEffect)
-        // {
-        //     LoadEffectsData();
-        //
-        //     var newIndex = _filteredEffectsList.IndexOf(newEffect);
-        //     if (newIndex >= 0)
-        //     {
-        //         _listView.SetSelection(newIndex);
-        //     }
-        // }
     } 
 }
