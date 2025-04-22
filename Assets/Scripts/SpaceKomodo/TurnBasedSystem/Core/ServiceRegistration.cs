@@ -1,5 +1,6 @@
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
+using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
 using SpaceKomodo.TurnBasedSystem.Core;
 using VContainer;
 

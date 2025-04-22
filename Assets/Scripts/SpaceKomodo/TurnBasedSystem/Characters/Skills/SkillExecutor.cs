@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using MessagePipe;
+using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
 using SpaceKomodo.TurnBasedSystem.Core;
 using SpaceKomodo.TurnBasedSystem.Events;
 
