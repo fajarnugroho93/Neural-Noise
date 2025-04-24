@@ -12,7 +12,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
         public Skill Skill;
         public Sprite Portrait;
         public SkillTarget Target;
-        public List<SkillEffectModelContainer> Effects = new List<SkillEffectModelContainer>();
+        public List<SkillEffectContainer> Effects = new List<SkillEffectContainer>();
     
         public object Clone()
         {
@@ -22,15 +22,16 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
                 Portrait = Portrait,
                 Target = Target,
                 Effects = Effects?
-                              .Select(effectContainer => (SkillEffectModelContainer)effectContainer.Clone()).ToList() 
-                          ?? new List<SkillEffectModelContainer>()
+                              .Select(effectContainer => (SkillEffectContainer)effectContainer.Clone()).ToList() 
+                          ?? new List<SkillEffectContainer>()
             };
         }
         
-        public void AddEffect(BaseSkillEffectModel effectModel)
+        public void AddEffect(EffectType effectType, EffectRegistry registry)
         {
-            var container = new SkillEffectModelContainer();
-            container.SetEffectModel(effectModel);
+            var newModel = registry.CreateModel(effectType);
+            var container = new SkillEffectContainer();
+            container.SetEffectModel(newModel);
             Effects.Add(container);
         }
     }

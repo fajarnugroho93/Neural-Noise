@@ -1,24 +1,23 @@
 using System.Collections.Generic;
 using MessagePipe;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
-using SpaceKomodo.TurnBasedSystem.Core;
 using SpaceKomodo.TurnBasedSystem.Events;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
 {
     public class SkillExecutor
     {
-        private readonly EffectFactory _effectFactory;
-        private readonly BattleModel _battleModel;
+        private readonly EffectRegistry _effectRegistry;
+        private readonly IEffectTargetResolver _targetResolver;
         private readonly IPublisher<EffectExecutedEvent> _effectExecutedPublisher;
         
         public SkillExecutor(
-            EffectFactory effectFactory,
-            BattleModel battleModel,
+            EffectRegistry effectRegistry,
+            IEffectTargetResolver targetResolver,
             IPublisher<EffectExecutedEvent> effectExecutedPublisher)
         {
-            _effectFactory = effectFactory;
-            _battleModel = battleModel;
+            _effectRegistry = effectRegistry;
+            _targetResolver = targetResolver;
             _effectExecutedPublisher = effectExecutedPublisher;
         }
         
@@ -26,18 +25,17 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
         {
             foreach (var effectContainer in skill.Effects)
             {
-                var effectModel = effectContainer.GetEffectModel();
-                var effect = _effectFactory.CreateEffect(effectModel.EffectType);
-                var targets = effect.GetTargets(source, primaryTarget, effectModel.Target);
+                var effectModel = effectContainer.GetEffectModel(_effectRegistry);
+                var behavior = _effectRegistry.GetBehavior(effectModel.Type);
+                var targets = _targetResolver.ResolveTargets(source, primaryTarget, effectModel.Target);
                 
                 foreach (var target in targets)
                 {
-                    effect.Execute(source, target, effectModel);
+                    behavior.Execute(source, target, effectModel);
                     
                     _effectExecutedPublisher.Publish(new EffectExecutedEvent(
                         source, 
                         target, 
-                        null,
                         0));
                 }
             }
@@ -52,13 +50,13 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
             
             foreach (var effectContainer in skill.Effects)
             {
-                var effectModel = effectContainer.GetEffectModel();
-                var effect = _effectFactory.CreateEffect(effectModel.EffectType);
-                var targets = effect.GetTargets(source, primaryTarget, effectModel.Target);
+                var effectModel = effectContainer.GetEffectModel(_effectRegistry);
+                var behavior = _effectRegistry.GetBehavior(effectModel.Type);
+                var targets = _targetResolver.ResolveTargets(source, primaryTarget, effectModel.Target);
                 
                 foreach (var target in targets)
                 {
-                    var prediction = effect.PredictEffect(source, target, effectModel);
+                    var prediction = behavior.PredictEffect(source, target, effectModel);
                     
                     if (!result.TryGetValue(target, out var predictions))
                     {

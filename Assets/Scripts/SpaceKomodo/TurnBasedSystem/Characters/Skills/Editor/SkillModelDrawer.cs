@@ -7,6 +7,22 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Editor
     [CustomEditor(typeof(MonoBehaviour), true)]
     public class SkillModelDrawer : UnityEditor.Editor
     {
+        private EffectRegistry _effectRegistry;
+        
+        private void OnEnable()
+        {
+            CreateEffectRegistry();
+        }
+        
+        private void CreateEffectRegistry()
+        {
+            var damageCalculator = new DamageCalculator();
+            var resourceManager = new ResourceManager();
+            var statusEffectManager = new StatusEffectManager();
+            
+            _effectRegistry = new EffectRegistry(damageCalculator, statusEffectManager, resourceManager);
+        }
+        
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -32,46 +48,45 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Editor
                     EditorGUILayout.Space();
                     EditorGUILayout.LabelField(field.Name, EditorStyles.boldLabel);
                     
-                    EditorGUILayout.BeginHorizontal();
-                    if (GUILayout.Button("Add Damage Effect"))
+                    if (GUILayout.Button("Add Effect"))
                     {
-                        AddEffect(skillModel, EffectType.Damage);
+                        GenericMenu menu = new GenericMenu();
+                        
+                        AddEffectMenuItem(menu, "Damage", EffectType.Damage, skillModel);
+                        AddEffectMenuItem(menu, "Heal", EffectType.Heal, skillModel);
+                        AddEffectMenuItem(menu, "Shield", EffectType.Shield, skillModel);
+                        
+                        menu.AddSeparator("");
+                        
+                        AddEffectMenuItem(menu, "Status/Poison", EffectType.Poison, skillModel);
+                        AddEffectMenuItem(menu, "Status/Burn", EffectType.Burn, skillModel);
+                        AddEffectMenuItem(menu, "Status/Stun", EffectType.Stun, skillModel);
+                        AddEffectMenuItem(menu, "Status/Blind", EffectType.Blind, skillModel);
+                        AddEffectMenuItem(menu, "Status/Silence", EffectType.Silence, skillModel);
+                        AddEffectMenuItem(menu, "Status/Root", EffectType.Root, skillModel);
+                        AddEffectMenuItem(menu, "Status/Taunt", EffectType.Taunt, skillModel);
+                        
+                        menu.AddSeparator("");
+                        
+                        AddEffectMenuItem(menu, "Resource/Energy", EffectType.Energy, skillModel);
+                        AddEffectMenuItem(menu, "Resource/Rage", EffectType.Rage, skillModel);
+                        AddEffectMenuItem(menu, "Resource/Mana", EffectType.Mana, skillModel);
+                        AddEffectMenuItem(menu, "Resource/Focus", EffectType.Focus, skillModel);
+                        AddEffectMenuItem(menu, "Resource/Charge", EffectType.Charge, skillModel);
+                        
+                        menu.ShowAsContext();
                     }
-                    
-                    if (GUILayout.Button("Add Heal Effect"))
-                    {
-                        AddEffect(skillModel, EffectType.Heal);
-                    }
-                    
-                    if (GUILayout.Button("Add Shield Effect"))
-                    {
-                        AddEffect(skillModel, EffectType.Shield);
-                    }
-                    EditorGUILayout.EndHorizontal();
-                    
-                    EditorGUILayout.BeginHorizontal();
-                    if (GUILayout.Button("Add Status Effect"))
-                    {
-                        AddEffect(skillModel, EffectType.Status);
-                    }
-                    
-                    if (GUILayout.Button("Add Resource Effect"))
-                    {
-                        AddEffect(skillModel, EffectType.Resource);
-                    }
-                    EditorGUILayout.EndHorizontal();
                 }
             }
         }
         
-        private void AddEffect(SkillModel skillModel, EffectType effectType)
+        private void AddEffectMenuItem(GenericMenu menu, string path, EffectType effectType, SkillModel skillModel)
         {
-            var effect = SkillEffectModelFactory.CreateDefaultModel(effectType);
-            if (effect != null)
+            menu.AddItem(new GUIContent(path), false, () => 
             {
-                skillModel.AddEffect(effect);
+                skillModel.AddEffect(effectType, _effectRegistry);
                 EditorUtility.SetDirty(target);
-            }
+            });
         }
     }
 }
