@@ -48,18 +48,16 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
         
         private IEffectModel DeserializeModel()
         {
-            return Type switch
+            var typeInfo = EffectTypeRegistry.GetEffectTypeInfo(Type);
+            
+            try
             {
-                EffectType.Damage => JsonUtility.FromJson<DamageEffectModel>(_serializedData),
-                EffectType.Heal => JsonUtility.FromJson<HealEffectModel>(_serializedData),
-                EffectType.Shield => JsonUtility.FromJson<ShieldEffectModel>(_serializedData),
-                EffectType.Poison => JsonUtility.FromJson<PoisonEffectModel>(_serializedData),
-                EffectType.Burn => JsonUtility.FromJson<BurnEffectModel>(_serializedData),
-                EffectType.Stun => JsonUtility.FromJson<StunEffectModel>(_serializedData),
-                EffectType.Energy => JsonUtility.FromJson<EnergyEffectModel>(_serializedData),
-                EffectType.Rage => JsonUtility.FromJson<RageEffectModel>(_serializedData),
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                return (IEffectModel)JsonUtility.FromJson(_serializedData, typeInfo.ModelType);
+            }
+            catch
+            {
+                return EffectTypeRegistry.CreateModel(Type);
+            }
         }
         
         public object Clone()

@@ -2,7 +2,6 @@ using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
 using VContainer;
-using EffectType = SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.EffectType;
 
 namespace SpaceKomodo.TurnBasedSystem.Core
 {
@@ -27,55 +26,27 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             
             builder.RegisterInstance<IStatusEffectImplementation>(
                 new PoisonStatusImplementation(damageCalculator))
-                .WithParameter("statusType", (int)EffectType.Poison);
+                .WithParameter("statusType", (int)StatusType.Poison);
                 
             builder.RegisterInstance<IStatusEffectImplementation>(
                 new BurnStatusImplementation(damageCalculator))
-                .WithParameter("statusType", (int)EffectType.Burn);
+                .WithParameter("statusType", (int)StatusType.Burn);
+            
+            // Register simple implementations with no constructor parameters
+            builder.RegisterInstance<IStatusEffectImplementation>(new StunStatusImplementation())
+                .WithParameter("statusType", (int)StatusType.Stun);
                 
-            builder.RegisterInstance<IStatusEffectImplementation>(
-                new StunStatusImplementation())
-                .WithParameter("statusType", (int)EffectType.Stun);
+            builder.RegisterInstance<IStatusEffectImplementation>(new BlindStatusImplementation())
+                .WithParameter("statusType", (int)StatusType.Blind);
                 
-            builder.RegisterInstance<IStatusEffectImplementation>(
-                new SilenceStatusImplementation())
-                .WithParameter("statusType", (int)EffectType.Silence);
+            builder.RegisterInstance<IStatusEffectImplementation>(new SilenceStatusImplementation())
+                .WithParameter("statusType", (int)StatusType.Silence);
                 
-            builder.RegisterInstance<IStatusEffectImplementation>(
-                new RootStatusImplementation())
-                .WithParameter("statusType", (int)EffectType.Root);
+            builder.RegisterInstance<IStatusEffectImplementation>(new RootStatusImplementation())
+                .WithParameter("statusType", (int)StatusType.Root);
                 
-            builder.RegisterInstance<IStatusEffectImplementation>(
-                new TauntStatusImplementation())
-                .WithParameter("statusType", (int)EffectType.Taunt);
+            builder.RegisterInstance<IStatusEffectImplementation>(new TauntStatusImplementation())
+                .WithParameter("statusType", (int)StatusType.Taunt);
         }
-    }
-    
-    public class StunStatusImplementation : IStatusEffectImplementation
-    {
-        public void OnApplied(CharacterModel target, int intensity) { }
-        public void OnRemoved(CharacterModel target, int intensity) { }
-        public void OnRoundStart(CharacterModel target, int intensity) { }
-    }
-    
-    public class SilenceStatusImplementation : IStatusEffectImplementation
-    {
-        public void OnApplied(CharacterModel target, int intensity) { }
-        public void OnRemoved(CharacterModel target, int intensity) { }
-        public void OnRoundStart(CharacterModel target, int intensity) { }
-    }
-    
-    public class RootStatusImplementation : IStatusEffectImplementation
-    {
-        public void OnApplied(CharacterModel target, int intensity) { }
-        public void OnRemoved(CharacterModel target, int intensity) { }
-        public void OnRoundStart(CharacterModel target, int intensity) { }
-    }
-    
-    public class TauntStatusImplementation : IStatusEffectImplementation
-    {
-        public void OnApplied(CharacterModel target, int intensity) { }
-        public void OnRemoved(CharacterModel target, int intensity) { }
-        public void OnRoundStart(CharacterModel target, int intensity) { }
     }
 }
