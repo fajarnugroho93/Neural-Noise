@@ -1,3 +1,4 @@
+using Unity.Plastic.Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 
@@ -17,18 +18,18 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                 return HeaderHeight;
                 
             var effectType = (EffectType)effectTypeProperty.enumValueIndex;
-            float lines = 1; // For Target
+            float lines = 1; 
             
             switch (effectType)
             {
                 case EffectType.Damage:
-                    lines += 3; // Amount, CriticalChance, CriticalMultiplier
+                    lines += 3; 
                     break;
                 case EffectType.Heal:
-                    lines += 3; // Amount, CriticalChance, CriticalMultiplier
+                    lines += 3; 
                     break;
                 case EffectType.Shield:
-                    lines += 2; // Amount, Duration
+                    lines += 2; 
                     break;
                 case EffectType.Poison:
                 case EffectType.Burn:
@@ -37,14 +38,14 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                 case EffectType.Silence:
                 case EffectType.Root:
                 case EffectType.Taunt:
-                    lines += 2; // Duration, Intensity
+                    lines += 2; 
                     break;
                 case EffectType.Energy:
                 case EffectType.Rage:
                 case EffectType.Mana:
                 case EffectType.Focus:
                 case EffectType.Charge:
-                    lines += 1; // Amount
+                    lines += 1; 
                     break;
             }
             
@@ -85,12 +86,11 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                 return;
             }
             
-            IEffectModel model = DeserializeEffectModel(effectType, serializedDataProperty.stringValue);
-            if (model == null)
-            {
-                model = CreateDefaultModel(effectType);
-            }
-            
+            var debugRect = new Rect(effectTypeRect.x + 130, headerRect.y + 2, position.width - 160, EditorGUIUtility.singleLineHeight);
+            EditorGUI.TextField(debugRect, serializedDataProperty.stringValue);
+
+            var model = DeserializeEffectModel(effectType, serializedDataProperty.stringValue) ?? CreateDefaultModel(effectType);
+
             var contentRect = new Rect(position.x, position.y + HeaderHeight, position.width, 
                 position.height - HeaderHeight);
             
@@ -190,7 +190,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                     break;
             }
             
-            serializedDataProperty.stringValue = JsonUtility.ToJson(model);
+            serializedDataProperty.stringValue = JsonConvert.SerializeObject(model);
             
             property.serializedObject.ApplyModifiedProperties();
             EditorGUI.EndProperty();
@@ -205,14 +205,14 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
             {
                 return type switch
                 {
-                    EffectType.Damage => JsonUtility.FromJson<DamageEffectModel>(serializedData),
-                    EffectType.Heal => JsonUtility.FromJson<HealEffectModel>(serializedData),
-                    EffectType.Shield => JsonUtility.FromJson<ShieldEffectModel>(serializedData),
-                    EffectType.Poison => JsonUtility.FromJson<PoisonEffectModel>(serializedData),
-                    EffectType.Burn => JsonUtility.FromJson<BurnEffectModel>(serializedData),
-                    EffectType.Stun => JsonUtility.FromJson<StunEffectModel>(serializedData),
-                    EffectType.Energy => JsonUtility.FromJson<EnergyEffectModel>(serializedData),
-                    EffectType.Rage => JsonUtility.FromJson<RageEffectModel>(serializedData),
+                    EffectType.Damage => JsonConvert.DeserializeObject<DamageEffectModel>(serializedData),
+                    EffectType.Heal => JsonConvert.DeserializeObject<HealEffectModel>(serializedData),
+                    EffectType.Shield => JsonConvert.DeserializeObject<ShieldEffectModel>(serializedData),
+                    EffectType.Poison => JsonConvert.DeserializeObject<PoisonEffectModel>(serializedData),
+                    EffectType.Burn => JsonConvert.DeserializeObject<BurnEffectModel>(serializedData),
+                    EffectType.Stun => JsonConvert.DeserializeObject<StunEffectModel>(serializedData),
+                    EffectType.Energy => JsonConvert.DeserializeObject<EnergyEffectModel>(serializedData),
+                    EffectType.Rage => JsonConvert.DeserializeObject<RageEffectModel>(serializedData),
                     _ => null
                 };
             }
