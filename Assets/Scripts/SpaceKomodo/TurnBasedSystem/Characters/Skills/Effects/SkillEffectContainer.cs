@@ -1,4 +1,5 @@
 using System;
+using Unity.Plastic.Newtonsoft.Json;
 using UnityEngine;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
@@ -43,7 +44,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             
             Type = model.Type;
             _cachedModel = model;
-            _serializedData = JsonUtility.ToJson(model);
+            _serializedData = JsonConvert.SerializeObject(model);
         }
         
         private IEffectModel DeserializeModel()
@@ -52,7 +53,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             
             try
             {
-                return (IEffectModel)JsonUtility.FromJson(_serializedData, typeInfo.ModelType);
+                return (IEffectModel)JsonConvert.DeserializeObject(_serializedData, typeInfo.ModelType);
             }
             catch
             {

@@ -40,7 +40,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public MapModel MapModel;
         
         public readonly ReactiveProperty<TurnPhase> CurrentPhase = new(TurnPhase.Idle);
-        public CharacterModel CurrentCharacter { get; private set; }
+        private CharacterModel CurrentCharacter { get; set; }
         public SkillModel SelectedSkill { get; private set; }
         public CharacterModel SelectedTarget { get; private set; }
         public TurnCommand CurrentCommand { get; private set; }
@@ -176,7 +176,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             return _validTargets.Contains(target);
         }
 
-        public void DetermineValidTargets()
+        private void DetermineValidTargets()
         {
             ClearValidTargets();
             
@@ -210,7 +210,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             }
         }
         
-        public void ClearValidTargets()
+        private void ClearValidTargets()
         {
             _validTargets.Clear();
         }
@@ -243,23 +243,9 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             
             CurrentCommand.Execute();
             CurrentPhase.Value = TurnPhase.Execute;
-            
-            TransitionToNextTurn();
-        }
-        
-        private void TransitionToNextTurn()
-        {
-            if (HasNextTurn())
-            {
-                NextTurn();
-            }
-            else
-            {
-                NextRound();
-            }
         }
 
-        public void ResetTurnState()
+        private void ResetTurnState()
         {
             SelectedSkill = null;
             SelectedTarget = null;
