@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SpaceKomodo.TurnBasedSystem.Effects;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
 {

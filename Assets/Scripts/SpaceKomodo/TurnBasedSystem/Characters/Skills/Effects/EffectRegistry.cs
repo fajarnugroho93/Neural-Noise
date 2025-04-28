@@ -1,3 +1,5 @@
+using SpaceKomodo.TurnBasedSystem.Effects;
+
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
 {
     public class EffectRegistry
@@ -58,14 +60,13 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
         private void RegisterStatusEffects()
         {
             var statusBehavior = new StatusBehavior(_statusEffectManager);
-            var damageBehavior = new DamageBehavior(_damageCalculator);
             
             EffectTypeRegistry.RegisterEffectType(
                 EffectType.Poison,
                 EffectCategory.Status,
                 typeof(PoisonEffectModel),
                 () => new PoisonEffectModel { Amount = 5, Duration = 3 },
-                damageBehavior
+                statusBehavior
             );
             
             EffectTypeRegistry.RegisterEffectType(
@@ -73,7 +74,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
                 EffectCategory.Status,
                 typeof(BurnEffectModel),
                 () => new BurnEffectModel { Amount = 5, Duration = 3 },
-                damageBehavior
+                statusBehavior
             );
             
             EffectTypeRegistry.RegisterEffectType(

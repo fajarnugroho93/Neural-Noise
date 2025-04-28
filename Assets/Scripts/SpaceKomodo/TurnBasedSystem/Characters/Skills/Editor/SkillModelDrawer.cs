@@ -1,4 +1,5 @@
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
+using SpaceKomodo.TurnBasedSystem.Effects;
 using UnityEditor;
 using UnityEngine;
 

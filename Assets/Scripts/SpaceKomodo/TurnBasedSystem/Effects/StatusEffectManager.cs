@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
+using SpaceKomodo.TurnBasedSystem.Characters;
+using SpaceKomodo.TurnBasedSystem.Characters.Skills;
 
-namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
+namespace SpaceKomodo.TurnBasedSystem.Effects
 {
     public class StatusEffectManager
     {
-        private readonly Dictionary<CharacterModel, List<ActiveStatusEffect>> _activeEffects = new Dictionary<CharacterModel, List<ActiveStatusEffect>>();
-        private readonly Dictionary<int, IStatusEffectImplementation> _statusImplementations = new Dictionary<int, IStatusEffectImplementation>();
+        private readonly Dictionary<CharacterModel, List<ActiveStatusEffect>> _activeEffects = new();
+        private readonly Dictionary<int, IStatusEffectImplementation> _statusImplementations = new();
         
         public void RegisterStatusImplementation(int statusType, IStatusEffectImplementation implementation)
         {

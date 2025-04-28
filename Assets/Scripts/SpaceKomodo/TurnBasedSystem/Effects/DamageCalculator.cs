@@ -1,9 +1,8 @@
-using R3;
-using SpaceKomodo.TurnBasedSystem.Characters.Skills;
+using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
 using UnityEngine;
 
-namespace SpaceKomodo.TurnBasedSystem.Characters
+namespace SpaceKomodo.TurnBasedSystem.Effects
 {
     public class DamageCalculator
     {

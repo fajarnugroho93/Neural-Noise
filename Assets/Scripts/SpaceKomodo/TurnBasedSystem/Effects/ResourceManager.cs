@@ -5,7 +5,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters
 {
     public class ResourceManager
     {
-        private readonly Dictionary<CharacterModel, Dictionary<int, int>> _characterResources = new Dictionary<CharacterModel, Dictionary<int, int>>();
+        private readonly Dictionary<CharacterModel, Dictionary<int, int>> _characterResources = new();
         
         public int GetResource(CharacterModel character, int resourceType)
         {

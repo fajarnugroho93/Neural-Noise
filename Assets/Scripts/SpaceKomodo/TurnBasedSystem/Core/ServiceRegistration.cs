@@ -1,6 +1,7 @@
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
+using SpaceKomodo.TurnBasedSystem.Effects;
 using VContainer;
 
 namespace SpaceKomodo.TurnBasedSystem.Core
@@ -22,31 +23,33 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         
         private static void RegisterStatusImplementations(IContainerBuilder builder)
         {
-            var damageCalculator = new DamageCalculator();
+            builder.Register<PoisonStatusImplementation>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .WithParameter(StatusType.Poison);
+               
+            builder.Register<BurnStatusImplementation>(Lifetime.Singleton)
+                .AsImplementedInterfaces() 
+                .WithParameter(StatusType.Burn);
             
-            builder.RegisterInstance<IStatusEffectImplementation>(
-                new PoisonStatusImplementation(damageCalculator))
-                .WithParameter("statusType", (int)StatusType.Poison);
+            builder.Register<StunStatusImplementation>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .WithParameter(StatusType.Stun);
                 
-            builder.RegisterInstance<IStatusEffectImplementation>(
-                new BurnStatusImplementation(damageCalculator))
-                .WithParameter("statusType", (int)StatusType.Burn);
-            
-            // Register simple implementations with no constructor parameters
-            builder.RegisterInstance<IStatusEffectImplementation>(new StunStatusImplementation())
-                .WithParameter("statusType", (int)StatusType.Stun);
+            builder.Register<BlindStatusImplementation>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .WithParameter(StatusType.Blind);
                 
-            builder.RegisterInstance<IStatusEffectImplementation>(new BlindStatusImplementation())
-                .WithParameter("statusType", (int)StatusType.Blind);
+            builder.Register<SilenceStatusImplementation>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .WithParameter(StatusType.Silence);
                 
-            builder.RegisterInstance<IStatusEffectImplementation>(new SilenceStatusImplementation())
-                .WithParameter("statusType", (int)StatusType.Silence);
+            builder.Register<RootStatusImplementation>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .WithParameter(StatusType.Root);
                 
-            builder.RegisterInstance<IStatusEffectImplementation>(new RootStatusImplementation())
-                .WithParameter("statusType", (int)StatusType.Root);
-                
-            builder.RegisterInstance<IStatusEffectImplementation>(new TauntStatusImplementation())
-                .WithParameter("statusType", (int)StatusType.Taunt);
+            builder.Register<TauntStatusImplementation>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .WithParameter(StatusType.Taunt);
         }
     }
 }

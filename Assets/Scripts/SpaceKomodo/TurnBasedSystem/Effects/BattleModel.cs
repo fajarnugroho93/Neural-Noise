@@ -6,7 +6,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
 {
     public class BattleModel
     {
-        private readonly List<CharacterModel> _allCharacters = new List<CharacterModel>();
+        private readonly List<CharacterModel> _allCharacters = new();
         
         public void RegisterCharacter(CharacterModel character)
         {

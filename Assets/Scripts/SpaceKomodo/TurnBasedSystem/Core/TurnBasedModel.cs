@@ -7,6 +7,7 @@ using SpaceKomodo.Extensions;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
 using SpaceKomodo.TurnBasedSystem.Commands;
+using SpaceKomodo.TurnBasedSystem.Effects;
 using SpaceKomodo.TurnBasedSystem.Events;
 using SpaceKomodo.TurnBasedSystem.Maps;
 using UnityEngine;
