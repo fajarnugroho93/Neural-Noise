@@ -19,9 +19,9 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
     
     public static class EffectTypeRegistry
     {
-        private static readonly Dictionary<EffectType, EffectTypeInfo> _effectTypeInfos = new Dictionary<EffectType, EffectTypeInfo>();
-        private static readonly Dictionary<EffectType, Func<IEffectModel>> _modelFactories = new Dictionary<EffectType, Func<IEffectModel>>();
-        private static readonly Dictionary<EffectType, IEffectBehavior> _effectBehaviors = new Dictionary<EffectType, IEffectBehavior>();
+        private static readonly Dictionary<EffectType, EffectTypeInfo> _effectTypeInfos = new();
+        private static readonly Dictionary<EffectType, Func<IEffectModel>> _modelFactories = new();
+        private static readonly Dictionary<EffectType, IEffectBehavior> _effectBehaviors = new();
         
         public static void RegisterEffectType(
             EffectType type,

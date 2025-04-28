@@ -19,7 +19,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
                 
             _statusEffectManager.ApplyStatus(
                 target, 
-                (int)effectModel.Type, 
+                effectModel.Type, 
                 statusModel.Duration, 
                 statusModel.Amount);
         }
@@ -31,7 +31,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             if (!(effectModel is IStatusEffect statusModel))
                 return result;
                 
-            result["StatusType"] = effectModel.Type;
+            result["EffectType"] = effectModel.Type;
             result["Duration"] = statusModel.Duration;
             result["Intensity"] = statusModel.Amount;
             

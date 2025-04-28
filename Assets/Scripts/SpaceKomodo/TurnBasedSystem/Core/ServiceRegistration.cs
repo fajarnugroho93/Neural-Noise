@@ -25,31 +25,31 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         {
             builder.Register<PoisonStatusImplementation>(Lifetime.Singleton)
                 .AsImplementedInterfaces()
-                .WithParameter(StatusType.Poison);
+                .WithParameter(EffectType.Poison);
                
             builder.Register<BurnStatusImplementation>(Lifetime.Singleton)
                 .AsImplementedInterfaces() 
-                .WithParameter(StatusType.Burn);
+                .WithParameter(EffectType.Burn);
             
             builder.Register<StunStatusImplementation>(Lifetime.Singleton)
                 .AsImplementedInterfaces()
-                .WithParameter(StatusType.Stun);
+                .WithParameter(EffectType.Stun);
                 
             builder.Register<BlindStatusImplementation>(Lifetime.Singleton)
                 .AsImplementedInterfaces()
-                .WithParameter(StatusType.Blind);
+                .WithParameter(EffectType.Blind);
                 
             builder.Register<SilenceStatusImplementation>(Lifetime.Singleton)
                 .AsImplementedInterfaces()
-                .WithParameter(StatusType.Silence);
+                .WithParameter(EffectType.Silence);
                 
             builder.Register<RootStatusImplementation>(Lifetime.Singleton)
                 .AsImplementedInterfaces()
-                .WithParameter(StatusType.Root);
+                .WithParameter(EffectType.Root);
                 
             builder.Register<TauntStatusImplementation>(Lifetime.Singleton)
                 .AsImplementedInterfaces()
-                .WithParameter(StatusType.Taunt);
+                .WithParameter(EffectType.Taunt);
         }
     }
 }

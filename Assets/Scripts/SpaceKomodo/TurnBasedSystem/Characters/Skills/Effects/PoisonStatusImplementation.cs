@@ -6,7 +6,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
     {
         private readonly DamageCalculator _damageCalculator;
 
-        public PoisonStatusImplementation(DamageCalculator damageCalculator)
+        public PoisonStatusImplementation(EffectType effectType, DamageCalculator damageCalculator) : base(effectType)
         {
             _damageCalculator = damageCalculator;
         }

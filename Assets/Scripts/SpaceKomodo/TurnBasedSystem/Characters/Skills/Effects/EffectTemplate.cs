@@ -158,7 +158,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             if (!(effectModel is StatusEffectModel model))
                 return result;
                 
-            result[""StatusType""] = effectModel.Type;
+            result[""EffectType""] = effectModel.Type;
             result[""Duration""] = model.Duration;
             result[""Intensity""] = model.Amount;
             

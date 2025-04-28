@@ -2,20 +2,37 @@ using System.Collections.Generic;
 using System.Linq;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
+using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
 
 namespace SpaceKomodo.TurnBasedSystem.Effects
 {
     public class StatusEffectManager
     {
         private readonly Dictionary<CharacterModel, List<ActiveStatusEffect>> _activeEffects = new();
-        private readonly Dictionary<int, IStatusEffectImplementation> _statusImplementations = new();
-        
-        public void RegisterStatusImplementation(int statusType, IStatusEffectImplementation implementation)
+        private readonly Dictionary<EffectType, IStatusEffectImplementation> _statusImplementations = new();
+
+        public StatusEffectManager()
         {
-            _statusImplementations[statusType] = implementation;
+            
         }
         
-        public void ApplyStatus(CharacterModel target, int statusType, int duration, int intensity)
+        public StatusEffectManager(IEnumerable<IStatusEffectImplementation> implementations)
+        {
+            foreach (var implementation in implementations)
+            {
+                if (implementation is BaseStatusImplementation statusImplementation)
+                {
+                    RegisterStatusImplementation(statusImplementation.EffectType, implementation);
+                }
+            }
+        }
+        
+        public void RegisterStatusImplementation(EffectType effectType, IStatusEffectImplementation implementation)
+        {
+            _statusImplementations[effectType] = implementation;
+        }
+        
+        public void ApplyStatus(CharacterModel target, EffectType effectType, int duration, int intensity)
         {
             if (!_activeEffects.TryGetValue(target, out var effectsList))
             {
@@ -23,7 +40,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
                 _activeEffects[target] = effectsList;
             }
             
-            var existingEffect = effectsList.FirstOrDefault(e => e.StatusType == statusType);
+            var existingEffect = effectsList.FirstOrDefault(e => e.EffectType == effectType);
             
             if (existingEffect != null)
             {
@@ -34,12 +51,12 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
             {
                 effectsList.Add(new ActiveStatusEffect
                 {
-                    StatusType = statusType,
+                    EffectType = effectType,
                     Duration = duration,
                     Intensity = intensity
                 });
                 
-                if (_statusImplementations.TryGetValue(statusType, out var implementation))
+                if (_statusImplementations.TryGetValue(effectType, out var implementation))
                 {
                     implementation.OnApplied(target, intensity);
                 }
@@ -55,7 +72,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
                 
                 foreach (var effect in effects.ToList())
                 {
-                    if (_statusImplementations.TryGetValue(effect.StatusType, out var implementation))
+                    if (_statusImplementations.TryGetValue(effect.EffectType, out var implementation))
                     {
                         implementation.OnRoundStart(character, effect.Intensity);
                     }
@@ -64,7 +81,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
                     
                     if (effect.Duration <= 0)
                     {
-                        if (_statusImplementations.TryGetValue(effect.StatusType, out implementation))
+                        if (_statusImplementations.TryGetValue(effect.EffectType, out implementation))
                         {
                             implementation.OnRemoved(character, effect.Intensity);
                         }
@@ -90,14 +107,14 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
             return effects.ToList();
         }
         
-        public bool HasStatusEffect(CharacterModel character, int statusType)
+        public bool HasStatusEffect(CharacterModel character, EffectType effectType)
         {
             if (!_activeEffects.TryGetValue(character, out var effects))
             {
                 return false;
             }
             
-            return effects.Any(e => e.StatusType == statusType);
+            return effects.Any(e => e.EffectType == effectType);
         }
         
         public void ClearEffects(CharacterModel character)
@@ -106,7 +123,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
             {
                 foreach (var effect in effects.ToList())
                 {
-                    if (_statusImplementations.TryGetValue(effect.StatusType, out var implementation))
+                    if (_statusImplementations.TryGetValue(effect.EffectType, out var implementation))
                     {
                         implementation.OnRemoved(character, effect.Intensity);
                     }
@@ -120,7 +137,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
     
     public class ActiveStatusEffect
     {
-        public int StatusType;
+        public EffectType EffectType;
         public int Duration;
         public int Intensity;
     }
