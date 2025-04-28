@@ -64,6 +64,7 @@ crashlytics-build.properties
 # Secrets
 /[Aa]ssets/**/*.meta
 .idea/
+[Aa]ssets/Gizmos/
 [Aa]ssets/Packages/
 [Aa]ssets/Prefabs/
 [Aa]ssets/Plugins/
