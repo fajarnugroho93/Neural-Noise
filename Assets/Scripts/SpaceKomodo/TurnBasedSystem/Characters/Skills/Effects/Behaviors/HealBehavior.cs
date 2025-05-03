@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
+namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors
 {
     public class HealBehavior : IEffectBehavior
     {

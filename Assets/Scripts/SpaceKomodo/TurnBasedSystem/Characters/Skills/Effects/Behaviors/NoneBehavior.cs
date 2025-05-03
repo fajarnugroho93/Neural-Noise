@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
+namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors
 {
     public class NoneBehavior : IEffectBehavior
     {

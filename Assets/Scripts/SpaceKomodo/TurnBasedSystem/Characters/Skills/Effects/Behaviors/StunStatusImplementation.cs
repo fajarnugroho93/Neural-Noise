@@ -1,4 +1,4 @@
-namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
+namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors
 {
     public class StunStatusImplementation : BaseStatusImplementation
     {

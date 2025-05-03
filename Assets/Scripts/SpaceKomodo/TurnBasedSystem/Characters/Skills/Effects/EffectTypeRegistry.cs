@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models;
 using UnityEngine;
 

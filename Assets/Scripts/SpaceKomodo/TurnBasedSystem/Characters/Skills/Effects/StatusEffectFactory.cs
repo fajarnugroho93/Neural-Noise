@@ -7,7 +7,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
     public class StatusEffectFactory
     {
         private readonly DamageCalculator _damageCalculator;
-        private readonly Dictionary<EffectType, Type> _implementationTypes = new Dictionary<EffectType, Type>();
+        private readonly Dictionary<EffectType, Type> _implementationTypes = new();
         
         public StatusEffectFactory(DamageCalculator damageCalculator, EffectRegistriesScriptableObject registries)
         {
@@ -21,7 +21,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
                     if (string.IsNullOrEmpty(implementationClass))
                         continue;
                         
-                    var type = Type.GetType($"SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.{implementationClass}");
+                    var type = Type.GetType($"{Constants.EffectsBehaviorsPath}.{implementationClass}");
                     if (type != null)
                     {
                         _implementationTypes[registry.EffectType] = type;

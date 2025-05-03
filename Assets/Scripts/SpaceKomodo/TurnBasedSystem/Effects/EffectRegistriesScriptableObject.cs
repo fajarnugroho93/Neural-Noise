@@ -24,20 +24,26 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
             }
 
             BasicEffects = effectRegistryScriptableObjects
-                .Where(effectRegistry => effectRegistry.Category == EffectCategory.Basic)
-                .OrderBy(effectRegistry => effectRegistry.EffectType)
+                .Where(effectRegistry => 
+                    (int)effectRegistry.EffectType >= (int)EffectCategory.Basic && 
+                    (int)effectRegistry.EffectType < (int)EffectCategory.Status)
+                .OrderBy(effectRegistry => (int)effectRegistry.EffectType)
                 .ToArray();
 
             StatusEffects = effectRegistryScriptableObjects
-                .Where(effectRegistry => effectRegistry.Category == EffectCategory.Status)
-                .OrderBy(effectRegistry => effectRegistry.EffectType)
+                .Where(effectRegistry => 
+                    (int)effectRegistry.EffectType >= (int)EffectCategory.Status && 
+                    (int)effectRegistry.EffectType < (int)EffectCategory.Resource)
+                .OrderBy(effectRegistry => (int)effectRegistry.EffectType)
                 .ToArray();
-                
+        
             ResourceEffects = effectRegistryScriptableObjects
-                .Where(effectRegistry => effectRegistry.Category == EffectCategory.Resource)
-                .OrderBy(effectRegistry => effectRegistry.EffectType)
+                .Where(effectRegistry => 
+                    (int)effectRegistry.EffectType >= (int)EffectCategory.Resource && 
+                    (int)effectRegistry.EffectType < (int)EffectCategory.Resource + 10000)
+                .OrderBy(effectRegistry => (int)effectRegistry.EffectType)
                 .ToArray();
-            
+    
             UnityEditor.EditorUtility.SetDirty(this);
             UnityEditor.AssetDatabase.SaveAssets();
         }

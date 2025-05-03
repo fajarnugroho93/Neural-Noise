@@ -130,14 +130,26 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         
         private int GetNextEnumValue()
         {
+            var baseValue = (int)_category;
+            var maxValue = baseValue + 9999;
+
             var values = Enum.GetValues(typeof(EffectType))
                 .Cast<int>()
+                .Where(v => v >= baseValue && v < maxValue)
                 .OrderBy(v => v)
                 .ToList();
 
             if (!values.Any())
             {
-                return 0;
+                return baseValue;
+            }
+
+            for (var i = baseValue; i < maxValue; i++)
+            {
+                if (!values.Contains(i))
+                {
+                    return i;
+                }
             }
 
             return values.Max() + 1;
@@ -146,19 +158,75 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         private void UpdateEffectEnum(int newValue)
         {
             var enumText = File.ReadAllText(EnumFilePath);
-
+            
             var enumStartIndex = enumText.IndexOf("public enum EffectType");
             var enumEndIndex = enumText.IndexOf("}", enumStartIndex);
-
-            var lastEntryIndex = enumText.LastIndexOf(",", enumEndIndex);
-            if (lastEntryIndex != -1)
+            
+            var enumContent = enumText.Substring(enumStartIndex, enumEndIndex - enumStartIndex);
+            
+            var groupComment = GetGroupCommentLine();
+            var insertPoint = -1;
+            
+            if (enumContent.Contains(groupComment))
+            {
+                var groupCommentIndex = enumContent.IndexOf(groupComment);
+                
+                var nextGroupIndex = enumContent.IndexOf("// ", groupCommentIndex + groupComment.Length);
+                if (nextGroupIndex == -1)
+                {
+                    nextGroupIndex = enumContent.IndexOf("}", groupCommentIndex);
+                }
+                
+                var lastEnumInGroup = enumContent.Substring(groupCommentIndex, nextGroupIndex - groupCommentIndex)
+                    .Split('\n')
+                    .LastOrDefault(line => line.Contains("=") && line.Contains(","));
+                
+                if (lastEnumInGroup != null)
+                {
+                    insertPoint = enumStartIndex + groupCommentIndex + enumContent.Substring(groupCommentIndex).IndexOf(lastEnumInGroup) + lastEnumInGroup.Length;
+                }
+            }
+            else
+            {
+                var lastGroupIndex = enumContent.LastIndexOf("// ");
+                if (lastGroupIndex != -1)
+                {
+                    var lastGroup = enumContent.Substring(lastGroupIndex);
+                    var lastEnumInLastGroup = lastGroup.Split('\n')
+                        .LastOrDefault(line => line.Contains("=") && line.Contains(","));
+                        
+                    if (lastEnumInLastGroup != null)
+                    {
+                        insertPoint = enumStartIndex + lastGroupIndex + lastGroup.IndexOf(lastEnumInLastGroup) + lastEnumInLastGroup.Length;
+                        
+                        var newEntry = $"\n\n        {groupComment}";
+                        enumText = enumText.Insert(insertPoint, newEntry);
+                        insertPoint += newEntry.Length;
+                    }
+                }
+                else
+                {
+                    insertPoint = enumEndIndex - 1;
+                    
+                    var newEntry = $"\n        {groupComment}";
+                    enumText = enumText.Insert(insertPoint, newEntry);
+                    insertPoint += newEntry.Length;
+                }
+            }
+            
+            if (insertPoint != -1)
             {
                 var newEntry = $"\n        {_effectName} = {newValue},";
-                enumText = enumText.Insert(lastEntryIndex + 1, newEntry);
-
+                enumText = enumText.Insert(insertPoint, newEntry);
+                
                 File.WriteAllText(EnumFilePath, enumText);
                 AssetDatabase.ImportAsset(EnumFilePath);
             }
+        }
+
+        private string GetGroupCommentLine()
+        {
+            return $"// {_category} = {(int)_category}";
         }
         
         private EffectRegistryScriptableObject CreateEffectRegistry(int enumValue)
@@ -207,10 +275,10 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             var className = registry.GetBehaviorClassName();
             var filePath = $"{BehaviorTemplatePath}{className}.cs";
             
-            string behaviorInterface = "IEffectBehavior";
-            string constructorParams = "";
-            string constructorParamsClass = "";
-            string executionLogic = "";
+            var behaviorInterface = "IEffectBehavior";
+            var constructorParams = "";
+            var constructorParamsClass = "";
+            var executionLogic = "";
             
             switch (_category)
             {

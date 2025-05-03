@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using SpaceKomodo.TurnBasedSystem.Effects;
 
-namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
+namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors
 {
     public class StatusBehavior : IEffectBehavior
     {

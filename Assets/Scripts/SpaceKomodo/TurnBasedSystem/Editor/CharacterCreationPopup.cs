@@ -128,7 +128,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 return baseValue;
             }
     
-            for (int i = baseValue; i < maxValue; i++)
+            for (var i = baseValue; i < maxValue; i++)
             {
                 if (!values.Contains(i))
                 {

@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
-using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models;
+using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors;
 using SpaceKomodo.TurnBasedSystem.Effects;
 
 namespace SpaceKomodo.TurnBasedSystem.Core
@@ -20,45 +21,27 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         }
 
         private static void RegisterBasicEffects(
-            EffectRegistryScriptableObject[] basicEffects, 
+            IEnumerable<EffectRegistryScriptableObject> basicEffects, 
             DamageCalculator damageCalculator)
         {
             foreach (var effectRegistry in basicEffects)
             {
-                if (effectRegistry.EffectType == EffectType.Damage)
-                {
-                    var behavior = new DamageBehavior(damageCalculator);
-                    RegisterEffect(effectRegistry, typeof(DamageEffectModel), () => new DamageEffectModel(), behavior);
-                }
-                else if (effectRegistry.EffectType == EffectType.Heal)
-                {
-                    var behavior = new HealBehavior();
-                    RegisterEffect(effectRegistry, typeof(HealEffectModel), () => new HealEffectModel(), behavior);
-                }
-                else if (effectRegistry.EffectType == EffectType.Shield)
-                {
-                    var behavior = new ShieldBehavior();
-                    RegisterEffect(effectRegistry, typeof(ShieldEffectModel), () => new ShieldEffectModel(), behavior);
-                }
-                else
-                {
-                    RegisterBasicEffectDynamic(effectRegistry, damageCalculator);
-                }
+                RegisterBasicEffect(effectRegistry, damageCalculator);
             }
         }
 
-        private static void RegisterBasicEffectDynamic(
+        private static void RegisterBasicEffect(
             EffectRegistryScriptableObject effectRegistry, 
             DamageCalculator damageCalculator)
         {
             if (string.IsNullOrEmpty(effectRegistry.ImplementationClassName))
                 return;
 
-            Type behaviorType = Type.GetType($"SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.{effectRegistry.ImplementationClassName}");
+            var behaviorType = Type.GetType($"{Constants.EffectsBehaviorsPath}.{effectRegistry.ImplementationClassName}");
             if (behaviorType == null)
                 return;
 
-            var modelType = Type.GetType($"SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.{effectRegistry.GetModelClassName()}");
+            var modelType = Type.GetType($"{Constants.EffectsModelsPath}.{effectRegistry.GetModelClassName()}");
             if (modelType == null)
                 return;
 
@@ -91,37 +74,22 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         }
 
         private static void RegisterStatusEffects(
-            EffectRegistryScriptableObject[] statusEffects, 
+            IEnumerable<EffectRegistryScriptableObject> statusEffects, 
             StatusEffectManager statusEffectManager)
         {
             foreach (var effectRegistry in statusEffects)
             {
                 var statusBehavior = new StatusBehavior(statusEffectManager);
-                
-                if (effectRegistry.EffectType == EffectType.Poison)
-                {
-                    RegisterEffect(effectRegistry, typeof(PoisonEffectModel), () => new PoisonEffectModel(), statusBehavior);
-                }
-                else if (effectRegistry.EffectType == EffectType.Burn)
-                {
-                    RegisterEffect(effectRegistry, typeof(BurnEffectModel), () => new BurnEffectModel(), statusBehavior);
-                }
-                else if (effectRegistry.EffectType == EffectType.Stun)
-                {
-                    RegisterEffect(effectRegistry, typeof(StunEffectModel), () => new StunEffectModel(), statusBehavior);
-                }
-                else
-                {
-                    RegisterStatusEffectDynamic(effectRegistry, statusBehavior);
-                }
+
+                RegisterStatusEffect(effectRegistry, statusBehavior);
             }
         }
 
-        private static void RegisterStatusEffectDynamic(
+        private static void RegisterStatusEffect(
             EffectRegistryScriptableObject effectRegistry, 
-            StatusBehavior statusBehavior)
+            IEffectBehavior statusBehavior)
         {
-            var modelType = Type.GetType($"SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.{effectRegistry.GetModelClassName()}");
+            var modelType = Type.GetType($"{Constants.EffectsModelsPath}.{effectRegistry.GetModelClassName()}");
             if (modelType == null)
                 return;
 
@@ -135,33 +103,22 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         }
 
         private static void RegisterResourceEffects(
-            EffectRegistryScriptableObject[] resourceEffects, 
+            IEnumerable<EffectRegistryScriptableObject> resourceEffects, 
             ResourceManager resourceManager)
         {
             foreach (var effectRegistry in resourceEffects)
             {
                 var resourceBehavior = new ResourceBehavior(resourceManager);
                 
-                if (effectRegistry.EffectType == EffectType.Energy)
-                {
-                    RegisterEffect(effectRegistry, typeof(EnergyEffectModel), () => new EnergyEffectModel(), resourceBehavior);
-                }
-                else if (effectRegistry.EffectType == EffectType.Rage)
-                {
-                    RegisterEffect(effectRegistry, typeof(RageEffectModel), () => new RageEffectModel(), resourceBehavior);
-                }
-                else
-                {
-                    RegisterResourceEffectDynamic(effectRegistry, resourceBehavior);
-                }
+                RegisterResourceEffect(effectRegistry, resourceBehavior);
             }
         }
 
-        private static void RegisterResourceEffectDynamic(
+        private static void RegisterResourceEffect(
             EffectRegistryScriptableObject effectRegistry, 
-            ResourceBehavior resourceBehavior)
+            IEffectBehavior resourceBehavior)
         {
-            var modelType = Type.GetType($"SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.{effectRegistry.GetModelClassName()}");
+            var modelType = Type.GetType($"{Constants.EffectsModelsPath}.{effectRegistry.GetModelClassName()}");
             if (modelType == null)
                 return;
 
@@ -171,21 +128,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
                 modelType,
                 () => (IEffectModel)Activator.CreateInstance(modelType),
                 resourceBehavior
-            );
-        }
-
-        private static void RegisterEffect(
-            EffectRegistryScriptableObject effectRegistry,
-            Type modelType,
-            Func<IEffectModel> modelFactory,
-            IEffectBehavior behavior)
-        {
-            EffectTypeRegistry.RegisterEffectType(
-                effectRegistry.EffectType,
-                effectRegistry.Category,
-                modelType,
-                modelFactory,
-                behavior
             );
         }
     }

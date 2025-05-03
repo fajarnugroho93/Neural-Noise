@@ -94,11 +94,15 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
 
         private readonly List<EffectType> _protectedEffects = new()
         {
+            EffectType.None,
             EffectType.Damage,
             EffectType.Heal,
             EffectType.Shield,
             EffectType.Poison,
-            EffectType.Burn
+            EffectType.Burn,
+            EffectType.Stun,
+            EffectType.Energy,
+            EffectType.Rage
         };
 
         [MenuItem("Tools/TurnBasedSystem/Turn Based Editor")]
@@ -238,7 +242,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 if (characterGroup != _currentCharacterGroup)
                 {
                     _currentCharacterGroup = characterGroup;
-
+                    
                     if (characterGroup == CharacterGroup.Hero)
                     {
                         _enemiesToggle.SetValueWithoutNotify(false);
@@ -254,7 +258,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                         _heroesToggle.SetValueWithoutNotify(false);
                         _enemiesToggle.SetValueWithoutNotify(false);
                     }
-
+                    
                     RefreshCharacterList();
                     _selectedItem = null;
                     ShowNoSelectionMessage();
@@ -265,23 +269,26 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 if (effectCategory != _currentEffectCategory)
                 {
                     _currentEffectCategory = effectCategory;
-
+                    
                     if (effectCategory == EffectCategory.Basic)
                     {
                         _statusEffectsToggle.SetValueWithoutNotify(false);
                         _resourceEffectsToggle.SetValueWithoutNotify(false);
+                        _basicEffectsToggle.SetValueWithoutNotify(true);
                     }
                     else if (effectCategory == EffectCategory.Status)
                     {
                         _basicEffectsToggle.SetValueWithoutNotify(false);
                         _resourceEffectsToggle.SetValueWithoutNotify(false);
+                        _statusEffectsToggle.SetValueWithoutNotify(true);
                     }
                     else if (effectCategory == EffectCategory.Resource)
                     {
                         _basicEffectsToggle.SetValueWithoutNotify(false);
                         _statusEffectsToggle.SetValueWithoutNotify(false);
+                        _resourceEffectsToggle.SetValueWithoutNotify(true);
                     }
-
+                    
                     RefreshEffectList();
                     _selectedItem = null;
                     ShowNoSelectionMessage();
@@ -739,6 +746,9 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
 
         private void FilterEffectList(string searchString)
         {
+            if (_currentEffectList == null)
+                return;
+        
             if (string.IsNullOrWhiteSpace(searchString))
             {
                 _filteredEffectList = new List<EffectRegistryScriptableObject>(_currentEffectList);
@@ -842,8 +852,8 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                     break;
                 case 2: // Category
                     _filteredEffectList = _filteredEffectList
-                        .OrderBy(e => e.Category)
-                        .ThenBy(e => e.EffectType.ToString())
+                        .OrderBy(e => (int)e.Category)
+                        .ThenBy(e => (int)e.EffectType)
                         .ToList();
                     break;
             }

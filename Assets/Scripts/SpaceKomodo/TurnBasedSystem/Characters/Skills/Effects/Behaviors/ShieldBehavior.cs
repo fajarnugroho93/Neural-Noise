@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models;
 
-namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
+namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors
 {
     public class ShieldBehavior : IEffectBehavior
     {
