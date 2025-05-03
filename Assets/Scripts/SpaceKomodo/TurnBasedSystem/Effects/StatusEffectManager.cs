@@ -40,12 +40,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
                 }
             }
         }
-        
-        public void RegisterStatusImplementation(EffectType effectType, IStatusEffectImplementation implementation)
-        {
-            _statusImplementations[effectType] = implementation;
-        }
-        
+
         public void ApplyStatus(CharacterModel target, EffectType effectType, int duration, int intensity)
         {
             if (!_activeEffects.TryGetValue(target, out var effectsList))

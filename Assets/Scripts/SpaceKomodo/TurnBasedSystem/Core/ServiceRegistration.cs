@@ -24,23 +24,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             builder.Register<EffectTargetResolver>(Lifetime.Singleton).As<IEffectTargetResolver>();
             builder.Register<SkillExecutor>(Lifetime.Singleton);
             builder.Register<BattleModel>(Lifetime.Singleton);
-            
-            // RegisterStatusImplementations(builder);
-        }
-        
-        private static void RegisterStatusImplementations(IContainerBuilder builder)
-        {
-            builder.Register<PoisonStatusImplementation>(Lifetime.Singleton)
-                .AsImplementedInterfaces()
-                .WithParameter(EffectType.Poison);
-               
-            builder.Register<BurnStatusImplementation>(Lifetime.Singleton)
-                .AsImplementedInterfaces() 
-                .WithParameter(EffectType.Burn);
-            
-            builder.Register<StunStatusImplementation>(Lifetime.Singleton)
-                .AsImplementedInterfaces()
-                .WithParameter(EffectType.Stun);
         }
     }
 }

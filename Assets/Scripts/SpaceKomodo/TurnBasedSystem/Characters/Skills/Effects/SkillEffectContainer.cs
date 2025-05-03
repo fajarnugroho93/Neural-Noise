@@ -26,7 +26,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             
             try
             {
-                _cachedModel = DeserializeModel();
+                _cachedModel = DeserializeModel(registry);
                 return _cachedModel;
             }
             catch (Exception ex)
@@ -47,17 +47,23 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             _serializedData = JsonConvert.SerializeObject(model);
         }
         
-        private IEffectModel DeserializeModel()
+        private IEffectModel DeserializeModel(EffectRegistry registry)
         {
-            var typeInfo = EffectTypeRegistry.GetEffectTypeInfo(Type);
-            
             try
             {
-                return (IEffectModel)JsonConvert.DeserializeObject(_serializedData, typeInfo.ModelType);
+                var behavior = registry.GetBehavior(Type);
+                if (behavior != null)
+                {
+                    var model = registry.CreateModel(Type);
+                    JsonConvert.PopulateObject(_serializedData, model);
+                    return model;
+                }
+                
+                return registry.CreateModel(Type);
             }
             catch
             {
-                return EffectTypeRegistry.CreateModel(Type);
+                return registry.CreateModel(Type);
             }
         }
         
