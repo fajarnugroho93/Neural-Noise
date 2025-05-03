@@ -99,7 +99,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
         
         public string GetModelClassName()
         {
-            return $"{EffectType}EffectModel";
+            return $"{EffectType.ToString()}EffectModel";
         }
         
         public string GetBaseModelTypeName()
@@ -109,7 +109,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
         
         public string GetBehaviorClassName()
         {
-            return $"{EffectType}Behavior";
+            return $"{EffectType.ToString()}Behavior";
         }
 #endif
     }

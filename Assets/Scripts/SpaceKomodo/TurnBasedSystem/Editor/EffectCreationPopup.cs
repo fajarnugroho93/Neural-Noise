@@ -11,7 +11,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
 {
     public class EffectCreationPopup : EditorWindow
     {
-        private const string EnumFilePath = "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/EffectInterfaces.cs";
+        private const string EnumFilePath = "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/EffectType.cs";
         private const string EffectFolderPath = "Assets/Resources/Data/Effects/";
         private const string ModelTemplatePath = "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/Models/";
         private const string BehaviorTemplatePath = "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/Behaviors/";
@@ -19,7 +19,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         private static TurnBasedEditor _parentEditor;
         private string _effectName = "";
         private EffectCategory _category = EffectCategory.Status;
-        private int _categoryIndex = 0;
         private string _errorMessage = "";
         private string _implementationClassName = "";
 
@@ -39,9 +38,8 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
 
             _effectName = EditorGUILayout.TextField("Effect Name:", _effectName);
             
-            _categoryIndex = EditorGUILayout.Popup("Category:", _categoryIndex, Enum.GetNames(typeof(EffectCategory)));
-            _category = (EffectCategory)_categoryIndex;
-            
+            _category = (EffectCategory)EditorGUILayout.EnumPopup("Category:", _category);
+
             _implementationClassName = EditorGUILayout.TextField("Implementation Class:", string.IsNullOrEmpty(_implementationClassName) ? $"{_effectName}Behavior" : _implementationClassName);
             
             EditorGUILayout.Space(10);
@@ -252,9 +250,8 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             var filePath = $"{ModelTemplatePath}{className}.cs";
             
             var template = $@"using System;
-using UnityEngine;
 
-namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
+namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
 {{
     [Serializable]
     public class {className} : {baseTypeName}
