@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
+using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
+using SpaceKomodo.TurnBasedSystem.Effects;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -14,10 +16,15 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
     public class TurnBasedEditor : EditorWindow
     {
         private const string WindowTitle = "Turn Based Editor";
-        private const string CharacterEnumFilePath = "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Character.cs";
-        private const string SkillEnumFilePath = "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Skill.cs";
 
-        private const string SkillEffectEnumFilePath = "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/SkillEffect.cs";
+        private const string CharacterEnumFilePath =
+            "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Character.cs";
+
+        private const string SkillEnumFilePath =
+            "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Skill.cs";
+
+        private const string SkillEffectEnumFilePath =
+            "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/EffectType.cs";
 
         private enum EditorTab
         {
@@ -29,11 +36,16 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         private EditorTab _currentTab = EditorTab.Characters;
 
         private CharactersScriptableObject _charactersScriptableObject;
+        private EffectRegistriesScriptableObject _effectRegistriesScriptableObject;
+
         private List<CharacterScriptableObject> _currentCharacterList = new();
         private List<CharacterScriptableObject> _filteredCharacterList = new();
 
         private Skill[] _skillList = new Skill[0];
         private List<Skill> _filteredSkillList = new();
+
+        private List<EffectRegistryScriptableObject> _currentEffectList = new();
+        private List<EffectRegistryScriptableObject> _filteredEffectList = new();
 
         private VisualElement _mainContainer;
         private VisualElement _tabsContainer;
@@ -58,7 +70,12 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         private ToolbarToggle _enemiesToggle;
         private ToolbarToggle _bossesToggle;
 
+        private ToolbarToggle _basicEffectsToggle;
+        private ToolbarToggle _statusEffectsToggle;
+        private ToolbarToggle _resourceEffectsToggle;
+
         private CharacterGroup _currentCharacterGroup = CharacterGroup.Hero;
+        private EffectCategory _currentEffectCategory = EffectCategory.Basic;
 
         private object _selectedItem;
 
@@ -73,6 +90,15 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         private readonly List<Skill> _protectedSkills = new()
         {
             Skill.None,
+        };
+
+        private readonly List<EffectType> _protectedEffects = new()
+        {
+            EffectType.Damage,
+            EffectType.Heal,
+            EffectType.Shield,
+            EffectType.Poison,
+            EffectType.Burn
         };
 
         [MenuItem("Tools/TurnBasedSystem/Turn Based Editor")]
@@ -95,13 +121,17 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         {
             var root = rootVisualElement;
 
-            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/Scripts/SpaceKomodo/TurnBasedSystem/Editor/TurnBasedEditor.uss");
+            var styleSheet =
+                AssetDatabase.LoadAssetAtPath<StyleSheet>(
+                    "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Editor/TurnBasedEditor.uss");
             if (styleSheet != null)
             {
                 root.styleSheets.Add(styleSheet);
             }
 
-            var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Scripts/SpaceKomodo/TurnBasedSystem/Editor/TurnBasedEditor.uxml");
+            var visualTree =
+                AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                    "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Editor/TurnBasedEditor.uxml");
             if (visualTree != null)
             {
                 visualTree.CloneTree(root);
@@ -126,6 +156,10 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             _heroesToggle = rootVisualElement.Q<ToolbarToggle>("HeroesToggle");
             _enemiesToggle = rootVisualElement.Q<ToolbarToggle>("EnemiesToggle");
             _bossesToggle = rootVisualElement.Q<ToolbarToggle>("BossesToggle");
+
+            _basicEffectsToggle = rootVisualElement.Q<ToolbarToggle>("HeroesToggle");
+            _statusEffectsToggle = rootVisualElement.Q<ToolbarToggle>("EnemiesToggle");
+            _resourceEffectsToggle = rootVisualElement.Q<ToolbarToggle>("BossesToggle");
 
             _searchField = rootVisualElement.Q<TextField>("SearchField");
             _sortDropdown = rootVisualElement.Q<DropdownField>("SortDropdown");
@@ -170,12 +204,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             {
                 if (evt.newValue)
                 {
-                    _enemiesToggle.SetValueWithoutNotify(false);
-                    _bossesToggle.SetValueWithoutNotify(false);
-                    _currentCharacterGroup = CharacterGroup.Hero;
-                    RefreshCharacterList();
-                    _selectedItem = null;
-                    ShowNoSelectionMessage();
+                    HandleToggleChange(CharacterGroup.Hero, EffectCategory.Basic);
                 }
             });
 
@@ -183,12 +212,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             {
                 if (evt.newValue)
                 {
-                    _heroesToggle.SetValueWithoutNotify(false);
-                    _bossesToggle.SetValueWithoutNotify(false);
-                    _currentCharacterGroup = CharacterGroup.Enemy;
-                    RefreshCharacterList();
-                    _selectedItem = null;
-                    ShowNoSelectionMessage();
+                    HandleToggleChange(CharacterGroup.Enemy, EffectCategory.Status);
                 }
             });
 
@@ -196,12 +220,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             {
                 if (evt.newValue)
                 {
-                    _heroesToggle.SetValueWithoutNotify(false);
-                    _enemiesToggle.SetValueWithoutNotify(false);
-                    _currentCharacterGroup = CharacterGroup.Boss;
-                    RefreshCharacterList();
-                    _selectedItem = null;
-                    ShowNoSelectionMessage();
+                    HandleToggleChange(CharacterGroup.Boss, EffectCategory.Resource);
                 }
             });
 
@@ -210,6 +229,64 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
 
             _addButton.clicked += OnAddButtonClicked;
             _deleteButton.clicked += OnDeleteButtonClicked;
+        }
+
+        private void HandleToggleChange(CharacterGroup characterGroup, EffectCategory effectCategory)
+        {
+            if (_currentTab == EditorTab.Characters)
+            {
+                if (characterGroup != _currentCharacterGroup)
+                {
+                    _currentCharacterGroup = characterGroup;
+
+                    if (characterGroup == CharacterGroup.Hero)
+                    {
+                        _enemiesToggle.SetValueWithoutNotify(false);
+                        _bossesToggle.SetValueWithoutNotify(false);
+                    }
+                    else if (characterGroup == CharacterGroup.Enemy)
+                    {
+                        _heroesToggle.SetValueWithoutNotify(false);
+                        _bossesToggle.SetValueWithoutNotify(false);
+                    }
+                    else if (characterGroup == CharacterGroup.Boss)
+                    {
+                        _heroesToggle.SetValueWithoutNotify(false);
+                        _enemiesToggle.SetValueWithoutNotify(false);
+                    }
+
+                    RefreshCharacterList();
+                    _selectedItem = null;
+                    ShowNoSelectionMessage();
+                }
+            }
+            else if (_currentTab == EditorTab.Effects)
+            {
+                if (effectCategory != _currentEffectCategory)
+                {
+                    _currentEffectCategory = effectCategory;
+
+                    if (effectCategory == EffectCategory.Basic)
+                    {
+                        _statusEffectsToggle.SetValueWithoutNotify(false);
+                        _resourceEffectsToggle.SetValueWithoutNotify(false);
+                    }
+                    else if (effectCategory == EffectCategory.Status)
+                    {
+                        _basicEffectsToggle.SetValueWithoutNotify(false);
+                        _resourceEffectsToggle.SetValueWithoutNotify(false);
+                    }
+                    else if (effectCategory == EffectCategory.Resource)
+                    {
+                        _basicEffectsToggle.SetValueWithoutNotify(false);
+                        _statusEffectsToggle.SetValueWithoutNotify(false);
+                    }
+
+                    RefreshEffectList();
+                    _selectedItem = null;
+                    ShowNoSelectionMessage();
+                }
+            }
         }
 
         private void UpdateTabSelection()
@@ -230,7 +307,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                     _effectsTabButton.AddToClassList("tab-selected");
                     break;
             }
-            
+
             _sortDropdown.choices = GetSortOptionsForCurrentTab();
             _sortDropdown.index = 0;
 
@@ -240,10 +317,32 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
 
         private void UpdateGroupTogglesVisibility()
         {
-            var showGroupToggles = _currentTab == EditorTab.Characters;
-            _heroesToggle.style.display = showGroupToggles ? DisplayStyle.Flex : DisplayStyle.None;
-            _enemiesToggle.style.display = showGroupToggles ? DisplayStyle.Flex : DisplayStyle.None;
-            _bossesToggle.style.display = showGroupToggles ? DisplayStyle.Flex : DisplayStyle.None;
+            var showCharacterToggles = _currentTab == EditorTab.Characters;
+            var showEffectToggles = _currentTab == EditorTab.Effects;
+
+            _heroesToggle.style.display =
+                showCharacterToggles || showEffectToggles ? DisplayStyle.Flex : DisplayStyle.None;
+            _enemiesToggle.style.display =
+                showCharacterToggles || showEffectToggles ? DisplayStyle.Flex : DisplayStyle.None;
+            _bossesToggle.style.display =
+                showCharacterToggles || showEffectToggles ? DisplayStyle.Flex : DisplayStyle.None;
+
+            if (showCharacterToggles)
+            {
+                _heroesToggle.text = "Heroes";
+                _enemiesToggle.text = "Enemies";
+                _bossesToggle.text = "Bosses";
+            }
+            else if (showEffectToggles)
+            {
+                _heroesToggle.text = "Basic";
+                _enemiesToggle.text = "Status";
+                _bossesToggle.text = "Resource";
+
+                _basicEffectsToggle = _heroesToggle;
+                _statusEffectsToggle = _enemiesToggle;
+                _resourceEffectsToggle = _bossesToggle;
+            }
         }
 
         private void SetupSortDropdown()
@@ -261,7 +360,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 case EditorTab.Skills:
                     return new List<string> { "Value", "Name" };
                 case EditorTab.Effects:
-                    return new List<string> { "Value", "Name" };
+                    return new List<string> { "Value", "Name", "Category" };
                 default:
                     return new List<string>();
             }
@@ -312,12 +411,23 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                     }
 
                     break;
+
                 case EditorTab.Skills:
                     if (index < _filteredSkillList.Count)
                     {
                         var skill = _filteredSkillList[index];
                         iconImage.sprite = null;
                         nameLabel.text = skill.ToString();
+                    }
+
+                    break;
+
+                case EditorTab.Effects:
+                    if (index < _filteredEffectList.Count)
+                    {
+                        var effect = _filteredEffectList[index];
+                        iconImage.sprite = null;
+                        nameLabel.text = effect.EffectType.ToString();
                     }
 
                     break;
@@ -346,12 +456,24 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                     {
                         ShowCharacterDetails(character);
                     }
+
                     break;
-                
+
                 case EditorTab.Skills:
                     var skill = (Skill)_selectedItem;
                     _deleteButton.SetEnabled(!_protectedSkills.Contains(skill));
                     ShowSkillDetails(skill);
+                    break;
+
+                case EditorTab.Effects:
+                    var effect = _selectedItem as EffectRegistryScriptableObject;
+                    _deleteButton.SetEnabled(effect != null &&
+                                             !_protectedEffects.Contains(effect.EffectType));
+                    if (effect != null)
+                    {
+                        ShowEffectDetails(effect);
+                    }
+
                     break;
             }
         }
@@ -423,10 +545,36 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             _detailsView.Add(container);
         }
 
+        private void ShowEffectDetails(EffectRegistryScriptableObject effect)
+        {
+            _noSelectionLabel.style.display = DisplayStyle.None;
+            _detailsView.style.display = DisplayStyle.Flex;
+
+            _detailsView.Clear();
+
+            var editor = UnityEditor.Editor.CreateEditor(effect);
+            var imguiContainer = new IMGUIContainer(() =>
+            {
+                if (editor != null)
+                {
+                    editor.OnInspectorGUI();
+                    if (GUI.changed)
+                    {
+                        EditorUtility.SetDirty(effect);
+                        RefreshEffectList();
+                        SortList();
+                    }
+                }
+            });
+
+            _detailsView.Add(imguiContainer);
+        }
+
         private void LoadDataSources()
         {
             LoadCharactersData();
             LoadSkillsData();
+            LoadEffectsData();
         }
 
         private void LoadCharactersData()
@@ -447,6 +595,18 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             RefreshSkillList();
         }
 
+        private void LoadEffectsData()
+        {
+            _effectRegistriesScriptableObject = GetEffectRegistriesScriptableObject();
+            if (_effectRegistriesScriptableObject == null)
+            {
+                Debug.LogError("EffectRegistriesScriptableObject not found. Please create one.");
+                return;
+            }
+
+            RefreshEffectList();
+        }
+
         private CharactersScriptableObject GetCharactersScriptableObject()
         {
             var guids = AssetDatabase.FindAssets("t:CharactersScriptableObject");
@@ -454,6 +614,18 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             {
                 var path = AssetDatabase.GUIDToAssetPath(guids[0]);
                 return AssetDatabase.LoadAssetAtPath<CharactersScriptableObject>(path);
+            }
+
+            return null;
+        }
+
+        private EffectRegistriesScriptableObject GetEffectRegistriesScriptableObject()
+        {
+            var guids = AssetDatabase.FindAssets("t:EffectRegistriesScriptableObject");
+            if (guids.Length > 0)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[0]);
+                return AssetDatabase.LoadAssetAtPath<EffectRegistriesScriptableObject>(path);
             }
 
             return null;
@@ -489,8 +661,24 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             FilterList(_searchField.value);
         }
 
-        private void RefreshEffectsList()
+        private void RefreshEffectList()
         {
+            if (_effectRegistriesScriptableObject == null)
+                return;
+
+            switch (_currentEffectCategory)
+            {
+                case EffectCategory.Basic:
+                    _currentEffectList = _effectRegistriesScriptableObject.BasicEffects.ToList();
+                    break;
+                case EffectCategory.Status:
+                    _currentEffectList = _effectRegistriesScriptableObject.StatusEffects.ToList();
+                    break;
+                case EffectCategory.Resource:
+                    _currentEffectList = _effectRegistriesScriptableObject.ResourceEffects.ToList();
+                    break;
+            }
+
             FilterList(_searchField.value);
         }
 
@@ -504,8 +692,11 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 case EditorTab.Skills:
                     FilterSkillList(searchString);
                     break;
+                case EditorTab.Effects:
+                    FilterEffectList(searchString);
+                    break;
             }
-            
+
             _sortDropdown.choices = GetSortOptionsForCurrentTab();
             if (_sortDropdown.index >= _sortDropdown.choices.Count)
             {
@@ -546,6 +737,21 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             }
         }
 
+        private void FilterEffectList(string searchString)
+        {
+            if (string.IsNullOrWhiteSpace(searchString))
+            {
+                _filteredEffectList = new List<EffectRegistryScriptableObject>(_currentEffectList);
+            }
+            else
+            {
+                searchString = searchString.ToLower();
+                _filteredEffectList = _currentEffectList
+                    .Where(e => e.EffectType.ToString().ToLower().Contains(searchString))
+                    .ToList();
+            }
+        }
+
         private void SortList()
         {
             if (_sortDropdown == null || _sortDropdown.index < 0)
@@ -558,6 +764,9 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                     break;
                 case EditorTab.Skills:
                     SortSkillList();
+                    break;
+                case EditorTab.Effects:
+                    SortEffectList();
                     break;
             }
 
@@ -614,6 +823,32 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             }
         }
 
+        private void SortEffectList()
+        {
+            if (_filteredEffectList == null)
+                return;
+
+            switch (_sortDropdown.index)
+            {
+                case 0: // Value
+                    _filteredEffectList = _filteredEffectList
+                        .OrderBy(e => (int)e.EffectType)
+                        .ToList();
+                    break;
+                case 1: // Name
+                    _filteredEffectList = _filteredEffectList
+                        .OrderBy(e => e.EffectType.ToString())
+                        .ToList();
+                    break;
+                case 2: // Category
+                    _filteredEffectList = _filteredEffectList
+                        .OrderBy(e => e.Category)
+                        .ThenBy(e => e.EffectType.ToString())
+                        .ToList();
+                    break;
+            }
+        }
+
         private void UpdateListView()
         {
             switch (_currentTab)
@@ -623,6 +858,9 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                     break;
                 case EditorTab.Skills:
                     _listView.itemsSource = _filteredSkillList;
+                    break;
+                case EditorTab.Effects:
+                    _listView.itemsSource = _filteredEffectList;
                     break;
             }
 
@@ -660,6 +898,24 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
 
         private void OnAddEffectClicked()
         {
+            if (_effectRegistriesScriptableObject == null)
+            {
+                if (EditorUtility.DisplayDialog("Effect Registries Required",
+                        "You need to create an Effect Registries asset first. Create one now?",
+                        "Create", "Cancel"))
+                {
+                    var newRegistries = CreateInstance<EffectRegistriesScriptableObject>();
+                    AssetDatabase.CreateAsset(newRegistries, "Assets/Resources/Data/Effects.asset");
+                    AssetDatabase.SaveAssets();
+
+                    _effectRegistriesScriptableObject = newRegistries;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
             EffectCreationPopup.Show(this);
         }
 
@@ -728,7 +984,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 ShowNoSelectionMessage();
             }
         }
-
+        
         private void OnDeleteSkillClicked()
         {
             if (!(_selectedItem is Skill skill))
@@ -756,7 +1012,57 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
 
         private void OnDeleteEffectClicked()
         {
-            
+            var effect = _selectedItem as EffectRegistryScriptableObject;
+            if (effect == null || _effectRegistriesScriptableObject == null)
+                return;
+
+            if (_protectedEffects.Contains(effect.EffectType))
+            {
+                EditorUtility.DisplayDialog("Protected Effect",
+                    $"Cannot delete {effect.EffectType} as it is a protected effect.",
+                    "OK");
+                return;
+            }
+
+            if (EditorUtility.DisplayDialog("Delete Effect",
+                    $"Are you sure you want to delete {effect.EffectType}?",
+                    "Yes", "No"))
+            {
+                RemoveEnumEntry(SkillEffectEnumFilePath, effect.EffectType.ToString());
+
+                switch (effect.Category)
+                {
+                    case EffectCategory.Basic:
+                        var basicEffects = _effectRegistriesScriptableObject.BasicEffects.ToList();
+                        basicEffects.Remove(effect);
+                        _effectRegistriesScriptableObject.BasicEffects = basicEffects.ToArray();
+                        break;
+
+                    case EffectCategory.Status:
+                        var statusEffects = _effectRegistriesScriptableObject.StatusEffects.ToList();
+                        statusEffects.Remove(effect);
+                        _effectRegistriesScriptableObject.StatusEffects = statusEffects.ToArray();
+                        break;
+                        
+                    case EffectCategory.Resource:
+                        var resourceEffects = _effectRegistriesScriptableObject.ResourceEffects.ToList();
+                        resourceEffects.Remove(effect);
+                        _effectRegistriesScriptableObject.ResourceEffects = resourceEffects.ToArray();
+                        break;
+                }
+
+                var assetPath = AssetDatabase.GetAssetPath(effect);
+                if (!string.IsNullOrEmpty(assetPath))
+                {
+                    AssetDatabase.DeleteAsset(assetPath);
+                }
+
+                EditorUtility.SetDirty(_effectRegistriesScriptableObject);
+                AssetDatabase.SaveAssets();
+
+                RefreshEffectList();
+                ShowNoSelectionMessage();
+            }
         }
 
         private void RemoveEnumEntry(string filePath, string entryName)
@@ -779,7 +1085,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             File.WriteAllLines(filePath, newLines);
             AssetDatabase.ImportAsset(filePath);
         }
-
+        
         public void AddCharacterToList(CharacterScriptableObject newCharacter)
         {
             if (_charactersScriptableObject == null || newCharacter == null)
@@ -839,5 +1145,55 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                 _listView.SetSelection(newIndex);
             }
         }
-    } 
+
+        public void AddEffectToList(EffectRegistryScriptableObject newEffect)
+        {
+            if (_effectRegistriesScriptableObject == null || newEffect == null)
+                return;
+
+            switch (newEffect.Category)
+            {
+                case EffectCategory.Basic:
+                    var basicEffects = _effectRegistriesScriptableObject.BasicEffects.ToList();
+                    basicEffects.Add(newEffect);
+                    _effectRegistriesScriptableObject.BasicEffects = basicEffects.ToArray();
+                    if (_currentEffectCategory == EffectCategory.Basic)
+                    {
+                        _currentEffectList = basicEffects;
+                    }
+                    break;
+
+                case EffectCategory.Status:
+                    var statusEffects = _effectRegistriesScriptableObject.StatusEffects.ToList();
+                    statusEffects.Add(newEffect);
+                    _effectRegistriesScriptableObject.StatusEffects = statusEffects.ToArray();
+                    if (_currentEffectCategory == EffectCategory.Status)
+                    {
+                        _currentEffectList = statusEffects;
+                    }
+                    break;
+                    
+                case EffectCategory.Resource:
+                    var resourceEffects = _effectRegistriesScriptableObject.ResourceEffects.ToList();
+                    resourceEffects.Add(newEffect);
+                    _effectRegistriesScriptableObject.ResourceEffects = resourceEffects.ToArray();
+                    if (_currentEffectCategory == EffectCategory.Resource)
+                    {
+                        _currentEffectList = resourceEffects;
+                    }
+                    break;
+            }
+
+            EditorUtility.SetDirty(_effectRegistriesScriptableObject);
+            AssetDatabase.SaveAssets();
+
+            RefreshEffectList();
+
+            var newIndex = _filteredEffectList.FindIndex(e => e.EffectType == newEffect.EffectType);
+            if (newIndex >= 0)
+            {
+                _listView.SetSelection(newIndex);
+            }
+        }
+    }
 }

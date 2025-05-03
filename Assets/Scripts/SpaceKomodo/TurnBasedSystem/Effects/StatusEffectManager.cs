@@ -10,19 +10,33 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
     {
         private readonly Dictionary<CharacterModel, List<ActiveStatusEffect>> _activeEffects = new();
         private readonly Dictionary<EffectType, IStatusEffectImplementation> _statusImplementations = new();
+        private readonly StatusEffectFactory _statusEffectFactory;
 
         public StatusEffectManager()
         {
             
         }
         
-        public StatusEffectManager(IEnumerable<IStatusEffectImplementation> implementations)
+        public StatusEffectManager(
+            StatusEffectFactory statusEffectFactory,
+            EffectRegistriesScriptableObject registries)
         {
-            foreach (var implementation in implementations)
+            _statusEffectFactory = statusEffectFactory;
+    
+            RegisterImplementationsFromRegistries(registries);
+        }
+        
+        private void RegisterImplementationsFromRegistries(EffectRegistriesScriptableObject registries)
+        {
+            foreach (var registry in registries.StatusEffects)
             {
-                if (implementation is BaseStatusImplementation statusImplementation)
+                if (_statusImplementations.ContainsKey(registry.EffectType))
+                    continue;
+            
+                var implementation = _statusEffectFactory.CreateImplementation(registry.EffectType);
+                if (implementation != null)
                 {
-                    RegisterStatusImplementation(statusImplementation.EffectType, implementation);
+                    _statusImplementations[registry.EffectType] = implementation;
                 }
             }
         }

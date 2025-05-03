@@ -1,3 +1,4 @@
+using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models;
 using Unity.Plastic.Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
@@ -17,7 +18,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
             if (!_foldout)
                 return HeaderHeight;
                 
-            var effectType = (EffectType)effectTypeProperty.enumValueIndex;
+            var effectType = (EffectType)effectTypeProperty.intValue;
             float lines = 1; 
             
             switch (effectType)
@@ -34,17 +35,10 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                 case EffectType.Poison:
                 case EffectType.Burn:
                 case EffectType.Stun:
-                case EffectType.Blind:
-                case EffectType.Silence:
-                case EffectType.Root:
-                case EffectType.Taunt:
                     lines += 2; 
                     break;
                 case EffectType.Energy:
                 case EffectType.Rage:
-                case EffectType.Mana:
-                case EffectType.Focus:
-                case EffectType.Charge:
                     lines += 1; 
                     break;
             }
@@ -67,13 +61,13 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
             var foldoutRect = new Rect(headerRect.x + 10, headerRect.y, 20, headerRect.height);
             _foldout = EditorGUI.Foldout(foldoutRect, _foldout, GUIContent.none);
             
-            var effectType = (EffectType)effectTypeProperty.enumValueIndex;
+            var effectType = (EffectType)effectTypeProperty.intValue;
             var effectTypeRect = new Rect(foldoutRect.x + 15, headerRect.y + 2, 120, EditorGUIUtility.singleLineHeight);
             var newEffectType = (EffectType)EditorGUI.EnumPopup(effectTypeRect, effectType);
             
             if (newEffectType != effectType)
             {
-                effectTypeProperty.enumValueIndex = (int)newEffectType;
+                effectTypeProperty.intValue = (int)newEffectType;
                 serializedDataProperty.stringValue = "";
                 property.serializedObject.ApplyModifiedProperties();
                 EditorGUI.EndProperty();
@@ -159,10 +153,6 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                 case EffectType.Poison:
                 case EffectType.Burn:
                 case EffectType.Stun:
-                case EffectType.Blind:
-                case EffectType.Silence:
-                case EffectType.Root:
-                case EffectType.Taunt:
                     if (model is IStatusEffect statusModel)
                     {
                         statusModel.Duration = EditorGUI.IntField(
@@ -178,9 +168,6 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                     
                 case EffectType.Energy:
                 case EffectType.Rage:
-                case EffectType.Mana:
-                case EffectType.Focus:
-                case EffectType.Charge:
                     if (model is StatusEffectModel resourceModel)
                     {
                         resourceModel.Amount = EditorGUI.IntField(
@@ -234,9 +221,6 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                 EffectType.Stun => new StunEffectModel { Duration = 1, Amount = 1 },
                 EffectType.Energy => new EnergyEffectModel { Amount = 10 },
                 EffectType.Rage => new RageEffectModel { Amount = 5 },
-                EffectType.Mana => new EnergyEffectModel { Amount = 10 },
-                EffectType.Focus => new EnergyEffectModel { Amount = 10 },
-                EffectType.Charge => new EnergyEffectModel { Amount = 10 },
                 _ => new DamageEffectModel()
             };
         }

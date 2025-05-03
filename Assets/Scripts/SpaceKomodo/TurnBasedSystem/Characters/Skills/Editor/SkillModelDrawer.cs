@@ -21,7 +21,8 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Editor
             var resourceManager = new ResourceManager();
             var statusEffectManager = new StatusEffectManager();
             
-            _effectRegistry = new EffectRegistry(damageCalculator, statusEffectManager, resourceManager);
+            var effectRegistries = Resources.Load<EffectRegistriesScriptableObject>("Data/Effects");
+            _effectRegistry = new EffectRegistry(damageCalculator, statusEffectManager, resourceManager, effectRegistries);
         }
         
         public override void OnInspectorGUI()
@@ -53,31 +54,61 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Editor
                     {
                         GenericMenu menu = new GenericMenu();
                         
-                        AddEffectMenuItem(menu, "Damage", EffectType.Damage, skillModel);
-                        AddEffectMenuItem(menu, "Heal", EffectType.Heal, skillModel);
-                        AddEffectMenuItem(menu, "Shield", EffectType.Shield, skillModel);
-                        
-                        menu.AddSeparator("");
-                        
-                        AddEffectMenuItem(menu, "Status/Poison", EffectType.Poison, skillModel);
-                        AddEffectMenuItem(menu, "Status/Burn", EffectType.Burn, skillModel);
-                        AddEffectMenuItem(menu, "Status/Stun", EffectType.Stun, skillModel);
-                        AddEffectMenuItem(menu, "Status/Blind", EffectType.Blind, skillModel);
-                        AddEffectMenuItem(menu, "Status/Silence", EffectType.Silence, skillModel);
-                        AddEffectMenuItem(menu, "Status/Root", EffectType.Root, skillModel);
-                        AddEffectMenuItem(menu, "Status/Taunt", EffectType.Taunt, skillModel);
-                        
-                        menu.AddSeparator("");
-                        
-                        AddEffectMenuItem(menu, "Resource/Energy", EffectType.Energy, skillModel);
-                        AddEffectMenuItem(menu, "Resource/Rage", EffectType.Rage, skillModel);
-                        AddEffectMenuItem(menu, "Resource/Mana", EffectType.Mana, skillModel);
-                        AddEffectMenuItem(menu, "Resource/Focus", EffectType.Focus, skillModel);
-                        AddEffectMenuItem(menu, "Resource/Charge", EffectType.Charge, skillModel);
+                        AddEffectMenuItem(menu, "Basic Effects");
+                        AddEffectMenuItem(menu, "Status Effects");
+                        AddEffectMenuItem(menu, "Resource Effects");
                         
                         menu.ShowAsContext();
                     }
                 }
+            }
+        }
+
+        private void AddEffectMenuItem(GenericMenu menu, string categoryName)
+        {
+            var effectRegistries = Resources.Load<EffectRegistriesScriptableObject>("Data/Effects");
+            if (effectRegistries == null)
+                return;
+
+            EffectRegistryScriptableObject[] effectsArray = null;
+            
+            switch (categoryName)
+            {
+                case "Basic Effects":
+                    effectsArray = effectRegistries.BasicEffects;
+                    break;
+                case "Status Effects":
+                    effectsArray = effectRegistries.StatusEffects;
+                    break;
+                case "Resource Effects":
+                    effectsArray = effectRegistries.ResourceEffects;
+                    break;
+            }
+
+            if (effectsArray == null || effectsArray.Length == 0)
+                return;
+
+            foreach (var effect in effectsArray)
+            {
+                string effectName = effect.EffectType.ToString();
+                menu.AddItem(new GUIContent($"{categoryName}/{effectName}"), false, () => 
+                {
+                    var monoBehaviour = target as MonoBehaviour;
+                    if (monoBehaviour == null) return;
+                    
+                    foreach (var field in monoBehaviour.GetType().GetFields())
+                    {
+                        if (field.FieldType == typeof(SkillModel))
+                        {
+                            var skillModel = field.GetValue(monoBehaviour) as SkillModel;
+                            if (skillModel == null) continue;
+                            
+                            skillModel.AddEffect(effect.EffectType, _effectRegistry);
+                            EditorUtility.SetDirty(target);
+                            break;
+                        }
+                    }
+                });
             }
         }
         

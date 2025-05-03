@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
+using SpaceKomodo.TurnBasedSystem.Effects;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,13 +12,16 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
     public class EffectCreationPopup : EditorWindow
     {
         private const string EnumFilePath = "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/EffectInterfaces.cs";
-        private const string EffectModelPath = "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/Models";
+        private const string EffectFolderPath = "Assets/Resources/Data/Effects/";
+        private const string ModelTemplatePath = "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/Models/";
+        private const string BehaviorTemplatePath = "Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/Behaviors/";
         
         private static TurnBasedEditor _parentEditor;
         private string _effectName = "";
         private EffectCategory _category = EffectCategory.Status;
         private int _categoryIndex = 0;
         private string _errorMessage = "";
+        private string _implementationClassName = "";
 
         public static void Show(TurnBasedEditor parentEditor)
         {
@@ -37,6 +41,8 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             
             _categoryIndex = EditorGUILayout.Popup("Category:", _categoryIndex, Enum.GetNames(typeof(EffectCategory)));
             _category = (EffectCategory)_categoryIndex;
+            
+            _implementationClassName = EditorGUILayout.TextField("Implementation Class:", string.IsNullOrEmpty(_implementationClassName) ? $"{_effectName}Behavior" : _implementationClassName);
             
             EditorGUILayout.Space(10);
 
@@ -98,13 +104,21 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         {
             try
             {
-                Directory.CreateDirectory(EffectModelPath);
+                Directory.CreateDirectory(EffectFolderPath);
+                Directory.CreateDirectory(ModelTemplatePath);
+                Directory.CreateDirectory(BehaviorTemplatePath);
                 
                 var newValue = GetNextEnumValue();
                 UpdateEffectEnum(newValue);
-                CreateEffectModelClass();
+                
+                var registryAsset = CreateEffectRegistry(newValue);
+                GenerateModelClass(registryAsset);
+                GenerateBehaviorClass(registryAsset);
                 
                 AssetDatabase.Refresh();
+                
+                _parentEditor?.AddEffectToList(registryAsset);
+                
                 EditorUtility.DisplayDialog("Success", $"Effect '{_effectName}' created successfully!", "OK");
             }
             catch (Exception e)
@@ -147,43 +161,159 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             }
         }
         
-        private void CreateEffectModelClass()
+        private EffectRegistryScriptableObject CreateEffectRegistry(int enumValue)
         {
-            var className = $"{_effectName}EffectModel";
-            var filePath = $"{EffectModelPath}/{className}.cs";
+            var registry = CreateInstance<EffectRegistryScriptableObject>();
             
-            var template = GetModelTemplate(className);
-            File.WriteAllText(filePath, template);
+            registry.EffectType = (EffectType)enumValue;
+            registry.Category = _category;
+            registry.ImplementationClassName = _implementationClassName;
+            registry.SetBaseModelType();
             
-            AssetDatabase.ImportAsset(filePath);
+            var assetPath = $"{EffectFolderPath}{enumValue}-{_effectName}.asset";
+            AssetDatabase.CreateAsset(registry, assetPath);
+            AssetDatabase.SaveAssets();
+            
+            return registry;
         }
         
-        private string GetModelTemplate(string className)
+        private void GenerateModelClass(EffectRegistryScriptableObject registry)
         {
-            string baseClass = GetBaseClassForCategory(_category);
+            var className = registry.GetModelClassName();
+            var baseTypeName = registry.GetBaseModelTypeName();
+            var filePath = $"{ModelTemplatePath}{className}.cs";
             
-            return $@"using System;
+            var template = $@"using System;
 using UnityEngine;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
 {{
     [Serializable]
-    public class {className} : {baseClass}
+    public class {className} : {baseTypeName}
     {{
         public override EffectType Type => EffectType.{_effectName};
     }}
 }}";
+            
+            File.WriteAllText(filePath, template);
+            AssetDatabase.ImportAsset(filePath);
+        }
+        
+        private void GenerateBehaviorClass(EffectRegistryScriptableObject registry)
+        {
+            if (string.IsNullOrEmpty(_implementationClassName) || _category == EffectCategory.Status)
+                return;
+                
+            var className = registry.GetBehaviorClassName();
+            var filePath = $"{BehaviorTemplatePath}{className}.cs";
+            
+            string behaviorInterface = "IEffectBehavior";
+            string constructorParams = "";
+            string constructorParamsClass = "";
+            string executionLogic = "";
+            
+            switch (_category)
+            {
+                case EffectCategory.Basic:
+                    constructorParams = "DamageCalculator damageCalculator";
+                    constructorParamsClass = "_damageCalculator";
+                    executionLogic = @"private readonly DamageCalculator _damageCalculator;
+        
+        public " + className + @"(DamageCalculator damageCalculator)
+        {
+            _damageCalculator = damageCalculator;
         }
 
-        private string GetBaseClassForCategory(EffectCategory category)
+        public void Execute(CharacterModel source, CharacterModel target, IEffectModel effectModel)
         {
-            return category switch
+            if (!(effectModel is IInstantEffect model))
+                return;
+
+            var isCritical = Random.value < model.CriticalChance;
+            var finalAmount = model.Amount;
+            
+            if (isCritical)
             {
-                EffectCategory.Basic => "InstantEffectModel",
-                EffectCategory.Status => "StatusEffectModel",
-                EffectCategory.Resource => "StatusEffectModel",
-                _ => "StatusEffectModel"
-            };
+                finalAmount = Mathf.RoundToInt(finalAmount * model.CriticalMultiplier);
+            }
+        }
+
+        public Dictionary<string, object> PredictEffect(CharacterModel source, CharacterModel target, IEffectModel effectModel)
+        {
+            var result = new Dictionary<string, object>();
+            
+            if (!(effectModel is IInstantEffect model))
+                return result;
+
+            var normalAmount = model.Amount;
+            var criticalAmount = Mathf.RoundToInt(model.Amount * model.CriticalMultiplier);
+
+            result[""MinAmount""] = normalAmount;
+            result[""MaxAmount""] = criticalAmount;
+            result[""CriticalChance""] = model.CriticalChance;
+
+            return result;
+        }";
+                    break;
+                    
+                case EffectCategory.Resource:
+                    constructorParams = "ResourceManager resourceManager";
+                    constructorParamsClass = "_resourceManager";
+                    executionLogic = @"private readonly ResourceManager _resourceManager;
+        
+        public " + className + @"(ResourceManager resourceManager)
+        {
+            _resourceManager = resourceManager;
+        }
+        
+        public void Execute(CharacterModel source, CharacterModel target, IEffectModel effectModel)
+        {
+            if (!(effectModel is IAmountEffect model))
+                return;
+            
+            var amount = model.Amount;
+            var resourceType = (int)effectModel.Type;
+            
+            if (amount > 0)
+            {
+                _resourceManager.AddResource(target, resourceType, amount);
+            }
+            else if (amount < 0)
+            {
+                _resourceManager.ConsumeResource(target, resourceType, -amount);
+            }
+        }
+        
+        public Dictionary<string, object> PredictEffect(CharacterModel source, CharacterModel target, IEffectModel effectModel)
+        {
+            var result = new Dictionary<string, object>();
+            
+            if (!(effectModel is IAmountEffect model))
+                return result;
+            
+            result[""ResourceType""] = effectModel.Type;
+            result[""Amount""] = model.Amount;
+            
+            return result;
+        }";
+                    break;
+            }
+            
+            var template = $@"using System.Collections.Generic;
+using SpaceKomodo.TurnBasedSystem.Characters;
+using SpaceKomodo.TurnBasedSystem.Effects;
+using UnityEngine;
+
+namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
+{{
+    public class {className} : {behaviorInterface}
+    {{
+        {executionLogic}
+    }}
+}}";
+            
+            File.WriteAllText(filePath, template);
+            AssetDatabase.ImportAsset(filePath);
         }
     }
 }

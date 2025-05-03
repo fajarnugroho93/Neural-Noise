@@ -2,25 +2,6 @@ using System.Collections.Generic;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
 {
-    public enum EffectType
-    {
-        Damage,
-        Heal,
-        Shield,
-        Poison,
-        Burn,
-        Stun,
-        Blind,
-        Silence,
-        Root,
-        Taunt,
-        Energy,
-        Rage,
-        Mana,
-        Focus,
-        Charge
-    }
-
     public interface IEffectModel
     {
         EffectType Type { get; }
