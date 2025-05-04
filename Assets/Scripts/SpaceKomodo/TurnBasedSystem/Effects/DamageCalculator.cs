@@ -20,6 +20,8 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
         
         public void ApplyDamage(CharacterModel target, int damage, DamageType damageType)
         {
+            Debug.Log($"[{GetType().Name}] {target} {damage} {damageType}");
+            
             if (damageType == DamageType.Poison)
             {
                 target.CurrentHealth.Value = Mathf.Max(0, target.CurrentHealth.Value - damage);

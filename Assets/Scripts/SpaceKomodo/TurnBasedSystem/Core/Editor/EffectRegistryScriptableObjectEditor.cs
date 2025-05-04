@@ -17,6 +17,9 @@ namespace SpaceKomodo.TurnBasedSystem.Core.Editor
         
         private void OnEnable()
         {
+            if (target == null)
+                return;
+            
             _categoryProperty = serializedObject.FindProperty("Category");
             _effectTypeProperty = serializedObject.FindProperty("EffectType");
             _defaultAmountProperty = serializedObject.FindProperty("_defaultAmount");
@@ -104,7 +107,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
     }}
 }}";
             
-            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(filePath));
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(filePath) ?? string.Empty);
             System.IO.File.WriteAllText(filePath, template);
             AssetDatabase.ImportAsset(filePath);
             
@@ -117,15 +120,11 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             var filePath = $"Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/Behaviors/{className}.cs";
             
             var behaviorInterface = "IEffectBehavior";
-            var constructorParams = "";
-            var constructorParamsClass = "";
             var executionLogic = "";
             
             switch (registry.Category)
             {
                 case EffectCategory.Basic:
-                    constructorParams = "DamageCalculator damageCalculator";
-                    constructorParamsClass = "_damageCalculator";
                     executionLogic = @"private readonly DamageCalculator _damageCalculator;
         
         public " + className + @"(DamageCalculator damageCalculator)
@@ -168,8 +167,6 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
                     break;
                     
                 case EffectCategory.Resource:
-                    constructorParams = "ResourceManager resourceManager";
-                    constructorParamsClass = "_resourceManager";
                     executionLogic = @"private readonly ResourceManager _resourceManager;
         
         public " + className + @"(ResourceManager resourceManager)
@@ -223,7 +220,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
     }}
 }}";
             
-            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(filePath));
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(filePath) ?? string.Empty);
             System.IO.File.WriteAllText(filePath, template);
             AssetDatabase.ImportAsset(filePath);
             

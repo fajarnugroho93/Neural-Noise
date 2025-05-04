@@ -266,15 +266,11 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
             var filePath = $"{BehaviorTemplatePath}{className}.cs";
             
             var behaviorInterface = "IEffectBehavior";
-            var constructorParams = "";
-            var constructorParamsClass = "";
             var executionLogic = "";
             
             switch (_category)
             {
                 case EffectCategory.Basic:
-                    constructorParams = "DamageCalculator damageCalculator";
-                    constructorParamsClass = "_damageCalculator";
                     executionLogic = @"private readonly DamageCalculator _damageCalculator;
         
         public " + className + @"(DamageCalculator damageCalculator)
@@ -315,16 +311,12 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
                     break;
                     
                 case EffectCategory.Status:
-                    constructorParams = "ResourceManager resourceManager";
-                    constructorParamsClass = "_resourceManager";
                     executionLogic = @"private readonly ResourceManager _resourceManager;
         
         }";
                     break;
                     
                 case EffectCategory.Resource:
-                    constructorParams = "ResourceManager resourceManager";
-                    constructorParamsClass = "_resourceManager";
                     executionLogic = @"private readonly ResourceManager _resourceManager;
         
         public " + className + @"(ResourceManager resourceManager)

@@ -1,4 +1,3 @@
-using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models;
 using Unity.Plastic.Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
@@ -12,38 +11,30 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
         private const float SpaceBetweenElements = 2f;
         private bool _foldout = true;
         
+        private static EffectRegistry _effectRegistry;
+        
+        private static EffectRegistry GetEffectRegistry()
+        {
+            return _effectRegistry ??= EffectEditorUtility.GetEffectRegistry();
+        }
+        
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             var effectTypeProperty = property.FindPropertyRelative("Type");
             if (!_foldout)
                 return HeaderHeight;
-                
+            
             var effectType = (EffectType)effectTypeProperty.intValue;
-            float lines = 1; 
+            var serializedDataProperty = property.FindPropertyRelative("_serializedData");
             
-            switch (effectType)
-            {
-                case EffectType.Damage:
-                    lines += 3; 
-                    break;
-                case EffectType.Heal:
-                    lines += 3; 
-                    break;
-                case EffectType.Shield:
-                    lines += 2; 
-                    break;
-                case EffectType.Poison:
-                case EffectType.Burn:
-                case EffectType.Stun:
-                    lines += 2; 
-                    break;
-                case EffectType.Energy:
-                case EffectType.Rage:
-                    lines += 1; 
-                    break;
-            }
+            var model = EffectEditorUtility.DeserializeEffectModel(effectType, serializedDataProperty.stringValue) 
+                     ?? GetEffectRegistry().CreateModel(effectType);
             
-            return HeaderHeight + (lines * (EditorGUIUtility.singleLineHeight + SpaceBetweenElements));
+            var contentHeight = EditorGUIUtility.singleLineHeight + SpaceBetweenElements;
+            contentHeight += EffectEditorUtility.CalculateEffectModelHeight(model, EditorGUIUtility.singleLineHeight, SpaceBetweenElements);
+            contentHeight += SpaceBetweenElements * 2;
+            
+            return HeaderHeight + contentHeight;
         }
         
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -55,14 +46,14 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
             
             var headerRect = new Rect(position.x, position.y, position.width, HeaderHeight);
             
-            EditorGUI.DrawRect(new Rect(headerRect.x, headerRect.y, headerRect.width, headerRect.height), 
-                new Color(0.1f, 0.1f, 0.1f, 0.3f));
+            EditorGUI.DrawRect(headerRect, new Color(0.1f, 0.1f, 0.1f, 0.3f));
             
             var foldoutRect = new Rect(headerRect.x + 10, headerRect.y, 20, headerRect.height);
             _foldout = EditorGUI.Foldout(foldoutRect, _foldout, GUIContent.none);
             
             var effectType = (EffectType)effectTypeProperty.intValue;
             var effectTypeRect = new Rect(foldoutRect.x + 15, headerRect.y + 2, 120, EditorGUIUtility.singleLineHeight);
+            
             var newEffectType = (EffectType)EditorGUI.EnumPopup(effectTypeRect, effectType);
             
             if (newEffectType != effectType)
@@ -83,146 +74,39 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
             var debugRect = new Rect(effectTypeRect.x + 130, headerRect.y + 2, position.width - 160, EditorGUIUtility.singleLineHeight);
             EditorGUI.TextField(debugRect, serializedDataProperty.stringValue);
 
-            var model = DeserializeEffectModel(effectType, serializedDataProperty.stringValue) ?? CreateDefaultModel(effectType);
-
-            var contentRect = new Rect(position.x, position.y + HeaderHeight, position.width, 
+            var model = EffectEditorUtility.DeserializeEffectModel(effectType, serializedDataProperty.stringValue);
+            
+            if (model == null)
+            {
+                model = GetEffectRegistry().CreateModel(effectType);
+            }
+            
+            var contentRect = new Rect(
+                position.x, 
+                position.y + HeaderHeight, 
+                position.width, 
                 position.height - HeaderHeight);
             
-            var yOffset = contentRect.y;
+            var yOffset = 0f;
             var lineHeight = EditorGUIUtility.singleLineHeight;
             var spacing = SpaceBetweenElements;
             
-            var targetRect = new Rect(contentRect.x, yOffset, contentRect.width, lineHeight);
-            model.Target = (RelativeTarget)EditorGUI.EnumPopup(targetRect, "Target", model.Target);
+            var targetProperty = model.Target;
+            var targetRect = new Rect(contentRect.x, contentRect.y + yOffset, contentRect.width, lineHeight);
+            model.Target = (RelativeTarget)EditorGUI.EnumPopup(targetRect, "Target", targetProperty);
             yOffset += lineHeight + spacing;
             
-            switch (effectType)
-            {
-                case EffectType.Damage:
-                    if (model is BasicDamageModel damageModel)
-                    {
-                        damageModel.Amount = EditorGUI.IntField(
-                            new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
-                            "Amount", damageModel.Amount);
-                        yOffset += lineHeight + spacing;
-                        
-                        damageModel.CriticalChance = EditorGUI.Slider(
-                            new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
-                            "Critical Chance", damageModel.CriticalChance, 0f, 1f);
-                        yOffset += lineHeight + spacing;
-                        
-                        damageModel.CriticalMultiplier = EditorGUI.Slider(
-                            new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
-                            "Critical Multiplier", damageModel.CriticalMultiplier, 1f, 3f);
-                    }
-                    break;
-                    
-                case EffectType.Heal:
-                    if (model is BasicHealModel healModel)
-                    {
-                        healModel.Amount = EditorGUI.IntField(
-                            new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
-                            "Amount", healModel.Amount);
-                        yOffset += lineHeight + spacing;
-                        
-                        healModel.CriticalChance = EditorGUI.Slider(
-                            new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
-                            "Critical Chance", healModel.CriticalChance, 0f, 1f);
-                        yOffset += lineHeight + spacing;
-                        
-                        healModel.CriticalMultiplier = EditorGUI.Slider(
-                            new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
-                            "Critical Multiplier", healModel.CriticalMultiplier, 1f, 3f);
-                    }
-                    break;
-                    
-                case EffectType.Shield:
-                    if (model is BasicShieldModel shieldModel)
-                    {
-                        shieldModel.Amount = EditorGUI.IntField(
-                            new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
-                            "Amount", shieldModel.Amount);
-                        yOffset += lineHeight + spacing;
-                        
-                        shieldModel.Duration = EditorGUI.IntField(
-                            new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
-                            "Duration", shieldModel.Duration);
-                    }
-                    break;
-                    
-                case EffectType.Poison:
-                case EffectType.Burn:
-                case EffectType.Stun:
-                    if (model is IStatusEffect statusModel)
-                    {
-                        statusModel.Duration = EditorGUI.IntField(
-                            new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
-                            "Duration", statusModel.Duration);
-                        yOffset += lineHeight + spacing;
-                        
-                        statusModel.Amount = EditorGUI.IntField(
-                            new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
-                            "Intensity", statusModel.Amount);
-                    }
-                    break;
-                    
-                case EffectType.Energy:
-                case EffectType.Rage:
-                    if (model is StatusEffectModel resourceModel)
-                    {
-                        resourceModel.Amount = EditorGUI.IntField(
-                            new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
-                            "Amount", resourceModel.Amount);
-                    }
-                    break;
-            }
+            EffectEditorUtility.DrawEffectModel(
+                new Rect(contentRect.x, contentRect.y + yOffset, contentRect.width, contentRect.height - yOffset),
+                model, 
+                0, 
+                lineHeight, 
+                spacing);
             
             serializedDataProperty.stringValue = JsonConvert.SerializeObject(model);
             
             property.serializedObject.ApplyModifiedProperties();
             EditorGUI.EndProperty();
-        }
-        
-        private IEffectModel DeserializeEffectModel(EffectType type, string serializedData)
-        {
-            if (string.IsNullOrEmpty(serializedData))
-                return null;
-                
-            try
-            {
-                return type switch
-                {
-                    EffectType.Damage => JsonConvert.DeserializeObject<BasicDamageModel>(serializedData),
-                    EffectType.Heal => JsonConvert.DeserializeObject<BasicHealModel>(serializedData),
-                    EffectType.Shield => JsonConvert.DeserializeObject<BasicShieldModel>(serializedData),
-                    EffectType.Poison => JsonConvert.DeserializeObject<StatusPoisonModel>(serializedData),
-                    EffectType.Burn => JsonConvert.DeserializeObject<StatusBurnModel>(serializedData),
-                    EffectType.Stun => JsonConvert.DeserializeObject<StatusStunModel>(serializedData),
-                    EffectType.Energy => JsonConvert.DeserializeObject<ResourceEnergyModel>(serializedData),
-                    EffectType.Rage => JsonConvert.DeserializeObject<ResourceRageModel>(serializedData),
-                    _ => null
-                };
-            }
-            catch
-            {
-                return null;
-            }
-        }
-        
-        private IEffectModel CreateDefaultModel(EffectType type)
-        {
-            return type switch
-            {
-                EffectType.Damage => new BasicDamageModel { Amount = 10, CriticalChance = 0.1f, CriticalMultiplier = 1.5f },
-                EffectType.Heal => new BasicHealModel { Amount = 15, CriticalChance = 0.1f, CriticalMultiplier = 1.5f },
-                EffectType.Shield => new BasicShieldModel { Amount = 10, Duration = 3 },
-                EffectType.Poison => new StatusPoisonModel { Duration = 3, Amount = 5 },
-                EffectType.Burn => new StatusBurnModel { Duration = 3, Amount = 7 },
-                EffectType.Stun => new StatusStunModel { Duration = 1, Amount = 1 },
-                EffectType.Energy => new ResourceEnergyModel { Amount = 10 },
-                EffectType.Rage => new ResourceRageModel { Amount = 5 },
-                _ => new BasicDamageModel()
-            };
         }
     }
 }
