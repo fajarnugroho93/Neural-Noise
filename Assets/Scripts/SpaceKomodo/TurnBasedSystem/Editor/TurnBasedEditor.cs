@@ -434,7 +434,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                     {
                         var effect = _filteredEffectList[index];
                         iconImage.sprite = null;
-                        nameLabel.text = effect.EffectType.ToString();
+                        nameLabel.text = effect.EffectTypeName;
                     }
 
                     break;
@@ -757,7 +757,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             {
                 searchString = searchString.ToLower();
                 _filteredEffectList = _currentEffectList
-                    .Where(e => e.EffectType.ToString().ToLower().Contains(searchString))
+                    .Where(e => e.EffectTypeName.ToLower().Contains(searchString))
                     .ToList();
             }
         }
@@ -847,7 +847,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                     break;
                 case 1: // Name
                     _filteredEffectList = _filteredEffectList
-                        .OrderBy(e => e.EffectType.ToString())
+                        .OrderBy(e => e.EffectTypeName)
                         .ToList();
                     break;
                 case 2: // Category
@@ -1038,7 +1038,7 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
                     $"Are you sure you want to delete {effect.EffectType}?",
                     "Yes", "No"))
             {
-                RemoveEnumEntry(SkillEffectEnumFilePath, effect.EffectType.ToString());
+                RemoveEnumEntry(SkillEffectEnumFilePath, effect.EffectTypeName);
 
                 switch (effect.Category)
                 {

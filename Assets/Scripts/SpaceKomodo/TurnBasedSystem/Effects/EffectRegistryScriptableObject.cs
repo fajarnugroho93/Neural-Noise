@@ -1,3 +1,4 @@
+using System;
 using NaughtyAttributes;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
 using UnityEditor;
@@ -11,7 +12,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
         public EffectType EffectType;
         public EffectCategory Category;
         
-        [SerializeField] private string _baseModelTypeName;
+        public string InitialEffectTypeName;
         
         [SerializeField] private int _defaultAmount = 10;
         [SerializeField] private int _defaultDuration = 3;
@@ -40,11 +41,12 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
 
         public string GetAssetName()
         {
-            return $"{(int)EffectType}-{EffectType}";
+            return $"{(int)EffectType}-{EffectTypeName}";
         }
 
-        public string BehaviorClassName => $"{Category}{EffectType}Behavior";
-        public string ModelClassName => $"{Category}{EffectType}Model";
+        public string EffectTypeName => Enum.IsDefined(typeof(EffectType), (int)EffectType) ? EffectType.ToString() : InitialEffectTypeName;
+        public string BehaviorClassName => $"{Category}{EffectTypeName}Behavior";
+        public string ModelClassName => $"{Category}{EffectTypeName}Model";
 
         public string BaseModelTypeName
         {

@@ -18,9 +18,8 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         
         private static TurnBasedEditor _parentEditor;
         private string _effectName = "";
-        private EffectCategory _category = EffectCategory.Status;
+        private EffectCategory _category = EffectCategory.Basic;
         private string _errorMessage = "";
-        private string _implementationClassName = "";
 
         public static void Show(TurnBasedEditor parentEditor)
         {
@@ -40,8 +39,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             
             _category = (EffectCategory)EditorGUILayout.EnumPopup("Category:", _category);
 
-            _implementationClassName = EditorGUILayout.TextField("Implementation Class:", string.IsNullOrEmpty(_implementationClassName) ? $"{_effectName}Behavior" : _implementationClassName);
-            
             EditorGUILayout.Space(10);
 
             if (!string.IsNullOrEmpty(_errorMessage))
@@ -230,7 +227,8 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         private EffectRegistryScriptableObject CreateEffectRegistry(int enumValue)
         {
             var registry = CreateInstance<EffectRegistryScriptableObject>();
-            
+
+            registry.InitialEffectTypeName = _effectName;
             registry.EffectType = (EffectType)enumValue;
             registry.Category = _category;
             
@@ -264,9 +262,6 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
         
         private void GenerateBehaviorClass(EffectRegistryScriptableObject registry)
         {
-            if (string.IsNullOrEmpty(_implementationClassName) || _category == EffectCategory.Status)
-                return;
-                
             var className = registry.BehaviorClassName;
             var filePath = $"{BehaviorTemplatePath}{className}.cs";
             
@@ -319,6 +314,14 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
         }";
                     break;
                     
+                case EffectCategory.Status:
+                    constructorParams = "ResourceManager resourceManager";
+                    constructorParamsClass = "_resourceManager";
+                    executionLogic = @"private readonly ResourceManager _resourceManager;
+        
+        }";
+                    break;
+                    
                 case EffectCategory.Resource:
                     constructorParams = "ResourceManager resourceManager";
                     constructorParamsClass = "_resourceManager";
@@ -331,7 +334,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
         
         public void Execute(CharacterModel source, CharacterModel target, IEffectModel effectModel)
         {
-            if (!(effectModel is IAmountEffect model))
+            if (effectModel is not IAmountEffect model)
                 return;
             
             var amount = model.Amount;
@@ -351,7 +354,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
         {
             var result = new Dictionary<string, object>();
             
-            if (!(effectModel is IAmountEffect model))
+            if (effectModel is not IAmountEffect model)
                 return result;
             
             result[""ResourceType""] = effectModel.Type;
@@ -363,11 +366,10 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
             }
             
             var template = $@"using System.Collections.Generic;
-using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Effects;
 using UnityEngine;
 
-namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
+namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors
 {{
     public class {className} : {behaviorInterface}
     {{

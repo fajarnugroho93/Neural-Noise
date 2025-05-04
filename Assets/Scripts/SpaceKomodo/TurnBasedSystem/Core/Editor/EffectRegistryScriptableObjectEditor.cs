@@ -89,7 +89,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core.Editor
         {
             var className = registry.ModelClassName;
             var baseTypeName = registry.BaseModelTypeName;
-            var effectName = registry.EffectType.ToString();
+            var effectName = registry.EffectTypeName;
             var filePath = $"Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/Models/{className}.cs";
             
             var template = $@"using System;
