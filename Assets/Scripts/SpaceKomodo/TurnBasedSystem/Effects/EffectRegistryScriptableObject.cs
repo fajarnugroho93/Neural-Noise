@@ -10,7 +10,6 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
     {
         public EffectType EffectType;
         public EffectCategory Category;
-        public string ImplementationClassName;
         
         [SerializeField] private string _baseModelTypeName;
         
@@ -43,16 +42,22 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
         {
             return $"{(int)EffectType}-{EffectType}";
         }
-        
-        public void SetBaseModelType()
+
+        public string BehaviorClassName => $"{Category}{EffectType}Behavior";
+        public string ModelClassName => $"{Category}{EffectType}Model";
+
+        public string BaseModelTypeName
         {
-            _baseModelTypeName = Category switch
+            get
             {
-                EffectCategory.Basic => "InstantEffectModel",
-                EffectCategory.Status => "StatusEffectModel",
-                EffectCategory.Resource => "StatusEffectModel",
-                _ => "BaseEffectModel"
-            };
+                return Category switch
+                {
+                    EffectCategory.Basic => "BasicEffectModel",
+                    EffectCategory.Status => "StatusEffectModel",
+                    EffectCategory.Resource => "StatusEffectModel",
+                    _ => "BaseEffectModel"
+                };
+            }
         }
         
         public IEffectModel CreateDefaultModel()
@@ -95,21 +100,6 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
                 _defaultCriticalChance = criticalEffect.CriticalChance;
                 _defaultCriticalMultiplier = criticalEffect.CriticalMultiplier;
             }
-        }
-        
-        public string GetModelClassName()
-        {
-            return $"{EffectType.ToString()}EffectModel";
-        }
-        
-        public string GetBaseModelTypeName()
-        {
-            return _baseModelTypeName;
-        }
-        
-        public string GetBehaviorClassName()
-        {
-            return $"{EffectType.ToString()}Behavior";
         }
 #endif
     }

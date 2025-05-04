@@ -8,9 +8,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core.Editor
     [CustomEditor(typeof(EffectRegistryScriptableObject))]
     public class EffectRegistryEditor : UnityEditor.Editor
     {
-        private SerializedProperty _effectTypeProperty;
         private SerializedProperty _categoryProperty;
-        private SerializedProperty _implementationClassNameProperty;
+        private SerializedProperty _effectTypeProperty;
         private SerializedProperty _defaultAmountProperty;
         private SerializedProperty _defaultDurationProperty;
         private SerializedProperty _defaultCriticalChanceProperty;
@@ -18,9 +17,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core.Editor
         
         private void OnEnable()
         {
-            _effectTypeProperty = serializedObject.FindProperty("EffectType");
             _categoryProperty = serializedObject.FindProperty("Category");
-            _implementationClassNameProperty = serializedObject.FindProperty("ImplementationClassName");
+            _effectTypeProperty = serializedObject.FindProperty("EffectType");
             _defaultAmountProperty = serializedObject.FindProperty("_defaultAmount");
             _defaultDurationProperty = serializedObject.FindProperty("_defaultDuration");
             _defaultCriticalChanceProperty = serializedObject.FindProperty("_defaultCriticalChance");
@@ -35,9 +33,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core.Editor
             EditorGUILayout.PropertyField(_categoryProperty);
             EditorGUILayout.PropertyField(_effectTypeProperty);
             // EditorGUI.EndDisabledGroup();
-            
-            EditorGUILayout.PropertyField(_implementationClassNameProperty);
-            
+
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Default Values", EditorStyles.boldLabel);
             
@@ -91,8 +87,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core.Editor
         
         private void GenerateModelClass(EffectRegistryScriptableObject registry)
         {
-            var className = registry.GetModelClassName();
-            var baseTypeName = registry.GetBaseModelTypeName();
+            var className = registry.ModelClassName;
+            var baseTypeName = registry.BaseModelTypeName;
             var effectName = registry.EffectType.ToString();
             var filePath = $"Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/Models/{className}.cs";
             
@@ -117,8 +113,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
         
         private void GenerateBehaviorClass(EffectRegistryScriptableObject registry)
         {
-            var className = registry.GetBehaviorClassName();
-            var effectName = registry.EffectType.ToString();
+            var className = registry.BehaviorClassName;
             var filePath = $"Assets/Scripts/SpaceKomodo/TurnBasedSystem/Characters/Skills/Effects/Behaviors/{className}.cs";
             
             var behaviorInterface = "IEffectBehavior";

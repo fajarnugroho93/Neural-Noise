@@ -1,6 +1,6 @@
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
 {
-    public interface IStatusEffectImplementation
+    public interface IStatusEffectBehavior
     {
         void OnApplied(CharacterModel target, int intensity);
         void OnRemoved(CharacterModel target, int intensity);

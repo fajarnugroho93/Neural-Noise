@@ -3,8 +3,8 @@ using System;
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
 {
     [Serializable]
-    public class HealEffectModel : InstantEffectModel
+    public class StatusBurnModel : StatusEffectModel
     {
-        public override EffectType Type => EffectType.Heal;
+        public override EffectType Type => EffectType.Burn;
     }
 }

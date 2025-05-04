@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors
 {
-    public class NoneBehavior : IEffectBehavior
+    public class NoneNoneBehavior : IEffectBehavior
     {
         public void Execute(CharacterModel source, CharacterModel target, IEffectModel effectModel)
         {

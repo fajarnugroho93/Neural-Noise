@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors
 {
-    public class HealBehavior : IEffectBehavior
+    public class BasicHealBehavior : IEffectBehavior
     {
         public void Execute(CharacterModel source, CharacterModel target, IEffectModel effectModel)
         {

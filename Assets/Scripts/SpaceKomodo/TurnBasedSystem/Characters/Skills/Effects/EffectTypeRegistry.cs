@@ -32,7 +32,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             }
             
             Debug.LogWarning($"No model factory found for effect type {type}. Creating a default model.");
-            return new DamageEffectModel();
+            return new BasicDamageModel();
         }
 
         public static IEffectBehavior GetBehavior(EffectType type)
@@ -43,7 +43,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             }
             
             Debug.LogWarning($"No behavior found for effect type {type}. Using NoneBehavior.");
-            return new NoneBehavior();
+            return new NoneNoneBehavior();
         }
 
         public static Type GetModelType(EffectType type)
@@ -54,7 +54,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             }
             
             Debug.LogWarning($"No model type found for effect type {type}.");
-            return typeof(DamageEffectModel);
+            return typeof(BasicDamageModel);
         }
 
         public static void Clear()

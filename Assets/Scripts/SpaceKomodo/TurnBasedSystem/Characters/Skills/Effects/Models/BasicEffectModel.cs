@@ -4,7 +4,7 @@ using UnityEngine;
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
 {
     [Serializable]
-    public abstract class InstantEffectModel : BaseEffectModel, IInstantEffect
+    public abstract class BasicEffectModel : BaseEffectModel, IInstantEffect
     {
         public int Amount { get; set; }
         [Range(0f, 1f)]

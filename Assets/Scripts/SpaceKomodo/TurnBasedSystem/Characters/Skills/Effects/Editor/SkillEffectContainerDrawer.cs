@@ -99,7 +99,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
             switch (effectType)
             {
                 case EffectType.Damage:
-                    if (model is DamageEffectModel damageModel)
+                    if (model is BasicDamageModel damageModel)
                     {
                         damageModel.Amount = EditorGUI.IntField(
                             new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
@@ -118,7 +118,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                     break;
                     
                 case EffectType.Heal:
-                    if (model is HealEffectModel healModel)
+                    if (model is BasicHealModel healModel)
                     {
                         healModel.Amount = EditorGUI.IntField(
                             new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
@@ -137,7 +137,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
                     break;
                     
                 case EffectType.Shield:
-                    if (model is ShieldEffectModel shieldModel)
+                    if (model is BasicShieldModel shieldModel)
                     {
                         shieldModel.Amount = EditorGUI.IntField(
                             new Rect(contentRect.x, yOffset, contentRect.width, lineHeight), 
@@ -192,14 +192,14 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
             {
                 return type switch
                 {
-                    EffectType.Damage => JsonConvert.DeserializeObject<DamageEffectModel>(serializedData),
-                    EffectType.Heal => JsonConvert.DeserializeObject<HealEffectModel>(serializedData),
-                    EffectType.Shield => JsonConvert.DeserializeObject<ShieldEffectModel>(serializedData),
-                    EffectType.Poison => JsonConvert.DeserializeObject<PoisonEffectModel>(serializedData),
-                    EffectType.Burn => JsonConvert.DeserializeObject<BurnEffectModel>(serializedData),
-                    EffectType.Stun => JsonConvert.DeserializeObject<StunEffectModel>(serializedData),
-                    EffectType.Energy => JsonConvert.DeserializeObject<EnergyEffectModel>(serializedData),
-                    EffectType.Rage => JsonConvert.DeserializeObject<RageEffectModel>(serializedData),
+                    EffectType.Damage => JsonConvert.DeserializeObject<BasicDamageModel>(serializedData),
+                    EffectType.Heal => JsonConvert.DeserializeObject<BasicHealModel>(serializedData),
+                    EffectType.Shield => JsonConvert.DeserializeObject<BasicShieldModel>(serializedData),
+                    EffectType.Poison => JsonConvert.DeserializeObject<StatusPoisonModel>(serializedData),
+                    EffectType.Burn => JsonConvert.DeserializeObject<StatusBurnModel>(serializedData),
+                    EffectType.Stun => JsonConvert.DeserializeObject<StatusStunModel>(serializedData),
+                    EffectType.Energy => JsonConvert.DeserializeObject<ResourceEnergyModel>(serializedData),
+                    EffectType.Rage => JsonConvert.DeserializeObject<ResourceRageModel>(serializedData),
                     _ => null
                 };
             }
@@ -213,15 +213,15 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Editor
         {
             return type switch
             {
-                EffectType.Damage => new DamageEffectModel { Amount = 10, CriticalChance = 0.1f, CriticalMultiplier = 1.5f },
-                EffectType.Heal => new HealEffectModel { Amount = 15, CriticalChance = 0.1f, CriticalMultiplier = 1.5f },
-                EffectType.Shield => new ShieldEffectModel { Amount = 10, Duration = 3 },
-                EffectType.Poison => new PoisonEffectModel { Duration = 3, Amount = 5 },
-                EffectType.Burn => new BurnEffectModel { Duration = 3, Amount = 7 },
-                EffectType.Stun => new StunEffectModel { Duration = 1, Amount = 1 },
-                EffectType.Energy => new EnergyEffectModel { Amount = 10 },
-                EffectType.Rage => new RageEffectModel { Amount = 5 },
-                _ => new DamageEffectModel()
+                EffectType.Damage => new BasicDamageModel { Amount = 10, CriticalChance = 0.1f, CriticalMultiplier = 1.5f },
+                EffectType.Heal => new BasicHealModel { Amount = 15, CriticalChance = 0.1f, CriticalMultiplier = 1.5f },
+                EffectType.Shield => new BasicShieldModel { Amount = 10, Duration = 3 },
+                EffectType.Poison => new StatusPoisonModel { Duration = 3, Amount = 5 },
+                EffectType.Burn => new StatusBurnModel { Duration = 3, Amount = 7 },
+                EffectType.Stun => new StatusStunModel { Duration = 1, Amount = 1 },
+                EffectType.Energy => new ResourceEnergyModel { Amount = 10 },
+                EffectType.Rage => new ResourceRageModel { Amount = 5 },
+                _ => new BasicDamageModel()
             };
         }
     }

@@ -1,10 +1,10 @@
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors
 {
-    public abstract class BaseStatusImplementation : IStatusEffectImplementation
+    public abstract class BaseStatusBehavior : IStatusEffectBehavior
     {
         public EffectType EffectType { get; private set; }
 
-        protected BaseStatusImplementation(EffectType effectType)
+        protected BaseStatusBehavior(EffectType effectType)
         {
             EffectType = effectType;
         }

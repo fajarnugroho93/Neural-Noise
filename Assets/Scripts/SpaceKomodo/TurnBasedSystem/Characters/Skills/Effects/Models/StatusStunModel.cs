@@ -3,8 +3,8 @@ using System;
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
 {
     [Serializable]
-    public class ShieldEffectModel : StatusEffectModel
+    public class StatusStunModel : StatusEffectModel
     {
-        public override EffectType Type => EffectType.Shield;
+        public override EffectType Type => EffectType.Stun;
     }
 }

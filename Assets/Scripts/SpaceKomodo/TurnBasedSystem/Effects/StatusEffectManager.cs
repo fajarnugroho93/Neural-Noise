@@ -9,7 +9,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
     public class StatusEffectManager
     {
         private readonly Dictionary<CharacterModel, List<ActiveStatusEffect>> _activeEffects = new();
-        private readonly Dictionary<EffectType, IStatusEffectImplementation> _statusImplementations = new();
+        private readonly Dictionary<EffectType, IStatusEffectBehavior> _statusImplementations = new();
         private readonly StatusEffectFactory _statusEffectFactory;
 
         public StatusEffectManager()

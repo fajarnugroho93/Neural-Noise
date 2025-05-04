@@ -3,11 +3,11 @@ using SpaceKomodo.TurnBasedSystem.Effects;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors
 {
-    public class DamageBehavior : IEffectBehavior
+    public class BasicDamageBehavior : IEffectBehavior
     {
         private readonly DamageCalculator _damageCalculator;
 
-        public DamageBehavior(DamageCalculator damageCalculator)
+        public BasicDamageBehavior(DamageCalculator damageCalculator)
         {
             _damageCalculator = damageCalculator;
         }

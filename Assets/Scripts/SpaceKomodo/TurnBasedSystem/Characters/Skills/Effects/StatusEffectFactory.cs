@@ -17,7 +17,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             {
                 foreach (var registry in registries.StatusEffects)
                 {
-                    var implementationClass = registry.ImplementationClassName;
+                    var implementationClass = registry.BehaviorClassName;
                     if (string.IsNullOrEmpty(implementationClass))
                         continue;
                         
@@ -30,20 +30,20 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             }
         }
         
-        public IStatusEffectImplementation CreateImplementation(EffectType effectType)
+        public IStatusEffectBehavior CreateImplementation(EffectType effectType)
         {
             if (_implementationTypes.TryGetValue(effectType, out var type))
             {
                 var constructor = type.GetConstructor(new[] { typeof(EffectType), typeof(DamageCalculator) });
                 if (constructor != null)
                 {
-                    return constructor.Invoke(new object[] { effectType, _damageCalculator }) as IStatusEffectImplementation;
+                    return constructor.Invoke(new object[] { effectType, _damageCalculator }) as IStatusEffectBehavior;
                 }
                 
                 constructor = type.GetConstructor(new[] { typeof(EffectType) });
                 if (constructor != null)
                 {
-                    return constructor.Invoke(new object[] { effectType }) as IStatusEffectImplementation;
+                    return constructor.Invoke(new object[] { effectType }) as IStatusEffectBehavior;
                 }
             }
 

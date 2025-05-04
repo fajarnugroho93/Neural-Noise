@@ -233,8 +233,6 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
             
             registry.EffectType = (EffectType)enumValue;
             registry.Category = _category;
-            registry.ImplementationClassName = _implementationClassName;
-            registry.SetBaseModelType();
             
             var assetPath = $"{EffectFolderPath}{enumValue}-{_effectName}.asset";
             AssetDatabase.CreateAsset(registry, assetPath);
@@ -245,8 +243,8 @@ namespace SpaceKomodo.TurnBasedSystem.Editor
         
         private void GenerateModelClass(EffectRegistryScriptableObject registry)
         {
-            var className = registry.GetModelClassName();
-            var baseTypeName = registry.GetBaseModelTypeName();
+            var className = registry.ModelClassName;
+            var baseTypeName = registry.BaseModelTypeName;
             var filePath = $"{ModelTemplatePath}{className}.cs";
             
             var template = $@"using System;
@@ -269,7 +267,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models
             if (string.IsNullOrEmpty(_implementationClassName) || _category == EffectCategory.Status)
                 return;
                 
-            var className = registry.GetBehaviorClassName();
+            var className = registry.BehaviorClassName;
             var filePath = $"{BehaviorTemplatePath}{className}.cs";
             
             var behaviorInterface = "IEffectBehavior";

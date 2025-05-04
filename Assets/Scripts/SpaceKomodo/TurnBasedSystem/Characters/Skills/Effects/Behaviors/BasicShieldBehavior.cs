@@ -3,7 +3,7 @@ using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Models;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects.Behaviors
 {
-    public class ShieldBehavior : IEffectBehavior
+    public class BasicShieldBehavior : IEffectBehavior
     {
         public void Execute(CharacterModel source, CharacterModel target, IEffectModel effectModel)
         {

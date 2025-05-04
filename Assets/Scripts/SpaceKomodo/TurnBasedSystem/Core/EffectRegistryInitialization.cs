@@ -34,14 +34,14 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             EffectRegistryScriptableObject effectRegistry, 
             DamageCalculator damageCalculator)
         {
-            if (string.IsNullOrEmpty(effectRegistry.ImplementationClassName))
+            if (string.IsNullOrEmpty(effectRegistry.BehaviorClassName))
                 return;
 
-            var behaviorType = Type.GetType($"{Constants.EffectsBehaviorsPath}.{effectRegistry.ImplementationClassName}");
+            var behaviorType = Type.GetType($"{Constants.EffectsBehaviorsPath}.{effectRegistry.BehaviorClassName}");
             if (behaviorType == null)
                 return;
 
-            var modelType = Type.GetType($"{Constants.EffectsModelsPath}.{effectRegistry.GetModelClassName()}");
+            var modelType = Type.GetType($"{Constants.EffectsModelsPath}.{effectRegistry.ModelClassName}");
             if (modelType == null)
                 return;
 
@@ -89,7 +89,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             EffectRegistryScriptableObject effectRegistry, 
             IEffectBehavior statusBehavior)
         {
-            var modelType = Type.GetType($"{Constants.EffectsModelsPath}.{effectRegistry.GetModelClassName()}");
+            var modelType = Type.GetType($"{Constants.EffectsModelsPath}.{effectRegistry.ModelClassName}");
             if (modelType == null)
                 return;
 
@@ -118,7 +118,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             EffectRegistryScriptableObject effectRegistry, 
             IEffectBehavior resourceBehavior)
         {
-            var modelType = Type.GetType($"{Constants.EffectsModelsPath}.{effectRegistry.GetModelClassName()}");
+            var modelType = Type.GetType($"{Constants.EffectsModelsPath}.{effectRegistry.ModelClassName}");
             if (modelType == null)
                 return;
 
