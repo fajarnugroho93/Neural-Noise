@@ -3,6 +3,7 @@ using System.Linq;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
+using UnityEngine;
 
 namespace SpaceKomodo.TurnBasedSystem.Effects
 {
@@ -67,6 +68,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
                 
                 if (_statusImplementations.TryGetValue(effectType, out var implementation))
                 {
+                    Debug.Log($"[{GetType().Name}] Apply {effectType} {target} {intensity}");
                     implementation.OnApplied(target, intensity);
                 }
             }
@@ -92,6 +94,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
                     {
                         if (_statusImplementations.TryGetValue(effect.EffectType, out implementation))
                         {
+                            Debug.Log($"[{GetType().Name}] Remove {effect.EffectType}");
                             implementation.OnRemoved(character, effect.Intensity);
                         }
                         

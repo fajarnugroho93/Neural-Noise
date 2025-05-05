@@ -20,7 +20,7 @@ namespace SpaceKomodo.TurnBasedSystem.Effects
         
         public void ApplyDamage(CharacterModel target, int damage, DamageType damageType)
         {
-            Debug.Log($"[{GetType().Name}] {target} {damage} {damageType}");
+            Debug.Log($"[{GetType().Name}] Damage {target} {damage} {damageType}");
             
             if (damageType == DamageType.Poison)
             {

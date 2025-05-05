@@ -25,6 +25,8 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects
             _modelFactories[type] = modelFactory;
             _effectBehaviors[type] = behavior;
             _effectCategories[type] = category;
+            
+            Debug.Log($"[{nameof(EffectTypeRegistry)}] Register {category} {type} {modelType}");
         }
 
         public static IEffectModel CreateModel(EffectType type)
