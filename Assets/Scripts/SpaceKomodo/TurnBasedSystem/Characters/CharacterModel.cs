@@ -30,6 +30,8 @@ namespace SpaceKomodo.TurnBasedSystem.Characters
         
         public readonly ReactiveProperty<int> TurnOrder;
         public readonly ReactiveProperty<bool> IsCurrentTurn;
+        public readonly ReactiveProperty<bool> IsTargetable;
+        public readonly ReactiveProperty<bool> IsTargeted;
 
         public CharacterModel()
         {
@@ -66,16 +68,14 @@ namespace SpaceKomodo.TurnBasedSystem.Characters
             
             TurnOrder = new ReactiveProperty<int>(0);
             IsCurrentTurn = new ReactiveProperty<bool>(false);
+            IsTargetable = new ReactiveProperty<bool>(false);
+            IsTargeted = new ReactiveProperty<bool>(false);
         }
 
-        public void SetTurnSpeed(int value)
+        public void ResetTarget()
         {
-            TurnSpeed.Value = value;
-        }
-
-        public void SetIsCurrentTurn(bool value)
-        {
-            IsCurrentTurn.Value = value;
+            IsTargetable.Value = false;
+            IsTargeted.Value = false;
         }
 
         public object Clone()

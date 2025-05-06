@@ -56,9 +56,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         
         private readonly List<SkillModel> _validSkills = new();
         public IReadOnlyList<SkillModel> ValidSkills => _validSkills;
-        
-        private readonly List<CharacterModel> _validTargets = new();
-        public IReadOnlyList<CharacterModel> ValidTargets => _validTargets;
 
         private DisposableBag _disposableBag;
 
@@ -132,7 +129,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             
             for (var ii = 0; ii < characterModels.Count; ++ii)
             {
-                characterModels[turnSpeeds[ii]].SetTurnSpeed(ii + 1);
+                characterModels[turnSpeeds[ii]].TurnSpeed.Value = (ii + 1);
             }
         }
 
@@ -159,6 +156,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public void NextTurn()
         {
             ++CurrentTurn.Value;
+            
+            ResetTurnState();
 
             for (var ii = 0; ii < _sortedModels.Count; ++ii)
             {
@@ -169,17 +168,15 @@ namespace SpaceKomodo.TurnBasedSystem.Core
                 {
                     currentTurnCharacterSelectedPublisher.Publish(new CurrentTurnCharacterSelectedEvent(currentCharacterModel));
                 }
-                
-                _sortedModels[ii].SetIsCurrentTurn(isCurrentCharacterTurn);
+
+                _sortedModels[ii].IsCurrentTurn.Value = isCurrentCharacterTurn;
             }
-            
-            ResetTurnState();
         }
         
         public void SetCurrentCharacter(CharacterModel character)
         {
             CurrentCharacter = character;
-            CurrentPhase.Value = TurnPhase.SelectDice;
+            CurrentPhase.Value = TurnPhase.SelectSkill;
         }
 
         public void SetSelectedDice(DiceModel dice)
@@ -190,7 +187,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             CurrentCommand = null;
             CurrentPhase.Value = TurnPhase.SelectTarget;
             
-            DetermineValidSkills();
+            // DetermineValidSkills();
         }
 
         public void SetSelectedSkill(SkillModel skill)
@@ -206,7 +203,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public void SetSelectedTarget(CharacterModel target)
         {
             if (!IsValidTarget(target)) return;
-            
+
+            target.IsTargeted.Value = true;
             SelectedTarget = target;
             CurrentPhase.Value = TurnPhase.Confirmation;
             
@@ -222,7 +220,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
 
         public bool IsValidTarget(CharacterModel target)
         {
-            return _validTargets.Contains(target);
+            return target.IsTargetable.Value;
         }
 
         private void DetermineValidTargets()
@@ -234,7 +232,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             switch (SelectedSkill.Target)
             {
                 case SkillTarget.Self:
-                    _validTargets.Add(CurrentCharacter);
+                    CurrentCharacter.IsTargetable.Value = true;
                     break;
                     
                 case SkillTarget.SingleAlly:
@@ -242,7 +240,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
                     {
                         if (model != CurrentCharacter && model.IsHero() == CurrentCharacter.IsHero())
                         {
-                            _validTargets.Add(model);
+                            model.IsTargetable.Value = true;
                         }
                     }
                     break;
@@ -252,23 +250,32 @@ namespace SpaceKomodo.TurnBasedSystem.Core
                     {
                         if (model.IsHero() != CurrentCharacter.IsHero())
                         {
-                            _validTargets.Add(model);
+                            model.IsTargetable.Value = true;
                         }
                     }
                     break;
             }
         }
         
-        private void ClearValidTargets()
+        public void ClearValidTargets()
         {
-            _validTargets.Clear();
+            foreach (var characterModel in characterModels)
+            {
+                characterModel.ResetTarget();
+            }
+            SelectedTarget = null;
+        }
+        
+        public void ClearSelectedTargets()
+        {
+            SelectedTarget.IsTargeted.Value = false;
+            SelectedTarget = null;
         }
 
         public void CancelSelectDice()
         {
             SelectedDice = null;
             SelectedSkill = null;
-            SelectedTarget = null;
             CurrentPhase.Value = TurnPhase.Idle;
             ClearValidTargets();
         }
@@ -276,7 +283,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public void CancelSelectSkill()
         {
             SelectedSkill = null;
-            SelectedTarget = null;
             CurrentPhase.Value = TurnPhase.Idle;
             ClearValidTargets();
         }
@@ -284,14 +290,13 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public void CancelSelectTarget()
         {
             SelectedSkill = null;
-            SelectedTarget = null;
             CurrentPhase.Value = TurnPhase.Idle;
             ClearValidTargets();
         }
 
         public void CancelConfirmation()
         {
-            SelectedTarget = null;
+            ClearSelectedTargets();
             CurrentPhase.Value = TurnPhase.SelectTarget;
         }
 
@@ -303,12 +308,21 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             CurrentPhase.Value = TurnPhase.Execute;
         }
 
+        private void ClearActiveCharacter()
+        {
+            foreach (var characterModel in characterModels)
+            {
+                characterModel.IsCurrentTurn.Value = false;
+            }
+        }
+
         private void ResetTurnState()
         {
-            SelectedSkill = null;
-            SelectedTarget = null;
-            CurrentCommand = null;
+            ClearActiveCharacter();
             ClearValidTargets();
+            
+            SelectedSkill = null;
+            CurrentCommand = null;
             CurrentPhase.Value = TurnPhase.Idle;
         }
     }

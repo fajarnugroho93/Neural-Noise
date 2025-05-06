@@ -80,16 +80,16 @@ namespace SpaceKomodo.TurnBasedSystem.Maps
         
         private void OnCurrentTurnCharacterSelected(CharacterModel characterModel)
         {
-            if (_selectedCharacterView != null)
-            {
-                _selectedCharacterView.SetSelected(false);
-            }
-            
-            if (_characterViews.TryGetValue(characterModel, out var characterView))
-            {
-                characterView.SetSelected(true);
-                _selectedCharacterView = characterView;
-            }
+            // if (_selectedCharacterView != null)
+            // {
+            //     _selectedCharacterView.SetSelected(false);
+            // }
+            //
+            // if (_characterViews.TryGetValue(characterModel, out var characterView))
+            // {
+            //     characterView.SetSelected(true);
+            //     _selectedCharacterView = characterView;
+            // }
         }
     }
 }

@@ -20,7 +20,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         [SerializeField] private TurnDiceView _turnDiceViewPrefab;
         [SerializeField] private MapGridView _mapGridViewPrefab;
         [SerializeField] private MapCharacterView _mapCharacterViewPrefab;
-        [SerializeField] private TargetIndicatorView _targetIndicatorPrefab;
         
         protected override void Configure(IContainerBuilder builder)
         {
@@ -31,7 +30,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             builder.RegisterInstance(_turnDiceViewPrefab);
             builder.RegisterInstance(_mapGridViewPrefab);
             builder.RegisterInstance(_mapCharacterViewPrefab);
-            builder.RegisterInstance(_targetIndicatorPrefab);
             
             builder.RegisterMessageBroker<int>(builder.RegisterMessagePipe());
             
@@ -41,8 +39,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             builder.Register<IMapGridViewFactory, MapGridViewFactory>(Lifetime.Singleton);
             builder.Register<IMapCharacterViewFactory, MapCharacterViewFactory>(Lifetime.Singleton);
             builder.Register<IGridPositionService, GridPositionService>(Lifetime.Singleton);
-            builder.Register<ITargetIndicatorFactory, TargetIndicatorFactory>(Lifetime.Singleton);
-            builder.Register<ITargetIndicatorManager, TargetIndicatorManager>(Lifetime.Singleton);
 
             ServiceRegistration.RegisterEffectSystem(builder);
 
