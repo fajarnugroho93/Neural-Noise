@@ -13,6 +13,7 @@ namespace SpaceKomodo.TurnBasedSystem.Views
     {
         public Transform CharacterTurnViewParentTransform;
         public Transform CurrentTurnSkillViewParentTransform;
+        public Transform TurnDiceViewParentTransform;
         public Transform HeroGridParentTransform;
         public Transform EnemyGridParentTransform;
 
@@ -80,12 +81,12 @@ namespace SpaceKomodo.TurnBasedSystem.Views
                 
                 bool CanShowSkillDetails()
                 {
-                    return currentPhase is TurnPhase.SelectSkill or TurnPhase.SelectTarget or TurnPhase.Confirmation;
+                    return currentPhase is TurnPhase.SelectDice or TurnPhase.SelectSkill or TurnPhase.SelectTarget or TurnPhase.Confirmation;
                 }
                 
                 bool CanShowCancelButton()
                 {
-                    return currentPhase is TurnPhase.SelectSkill or TurnPhase.SelectTarget or TurnPhase.Confirmation;
+                    return currentPhase is TurnPhase.SelectDice or TurnPhase.SelectSkill or TurnPhase.SelectTarget or TurnPhase.Confirmation;
                 }
 
                 bool CanShowExecuteButton()

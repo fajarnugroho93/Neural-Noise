@@ -108,6 +108,12 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
             if (_turnModel.CurrentPhase.Value == TurnPhase.SelectSkill)
             {
                 _targetIndicatorManager.SetSelectedTarget(null);
+                _turnModel.CancelSelectDice();
+                _targetIndicatorManager.ClearTargetIndicators();
+            }
+            else if (_turnModel.CurrentPhase.Value == TurnPhase.SelectSkill)
+            {
+                _targetIndicatorManager.SetSelectedTarget(null);
                 _turnModel.CancelSelectSkill();
                 _targetIndicatorManager.ClearTargetIndicators();
             }

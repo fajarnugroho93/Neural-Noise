@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills.Effects;
+using SpaceKomodo.TurnBasedSystem.Dice;
 using UnityEngine;
 
 namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
@@ -11,6 +12,7 @@ namespace SpaceKomodo.TurnBasedSystem.Characters.Skills
     {
         public Skill Skill;
         public Sprite Portrait;
+        public DiceFaceRequirement DiceFaceRequirement;
         public SkillTarget Target;
         public List<SkillEffectContainer> Effects = new List<SkillEffectContainer>();
     

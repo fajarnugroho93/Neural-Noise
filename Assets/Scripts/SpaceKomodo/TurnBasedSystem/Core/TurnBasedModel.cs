@@ -7,17 +7,21 @@ using SpaceKomodo.Extensions;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
 using SpaceKomodo.TurnBasedSystem.Commands;
+using SpaceKomodo.TurnBasedSystem.Dice;
 using SpaceKomodo.TurnBasedSystem.Effects;
 using SpaceKomodo.TurnBasedSystem.Events;
 using SpaceKomodo.TurnBasedSystem.Maps;
 using UnityEngine;
 using VContainer;
-using Random = System.Random;
+using DisposableBag = R3.DisposableBag;
+using Random = UnityEngine.Random;
 
 namespace SpaceKomodo.TurnBasedSystem.Core
 {
     public class TurnBasedModel : MonoBehaviour
     {
+        private const bool IsUsingRandomSpeedBonus = false;
+        
         [Inject] private readonly IPublisher<CurrentTurnCharacterSelectedEvent> currentTurnCharacterSelectedPublisher;
         [Inject] private readonly SkillExecutor _skillExecutor;
         [Inject] private readonly BattleModel _battleModel;
@@ -25,14 +29,17 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         
         public CharacterScriptableObject[] heroes;
         public CharacterScriptableObject[] enemies;
+        public int diceAmount;
         
         public readonly ReactiveProperty<int> CurrentRound = new(0);
         public readonly ReactiveProperty<int> CurrentTurn = new(0);
 
-        public readonly ObservableList<CharacterModel> models = new();
+        public readonly ObservableList<CharacterModel> characterModels = new();
         public readonly List<MapCharacterModel> heroMapModels = new();
         public readonly List<MapCharacterModel> enemyMapModels = new();
         private readonly List<int> turnSpeeds = new();
+
+        public readonly ObservableList<DiceModel> diceModels = new();
         
         private readonly Subject<Unit> _turnOrderChanged = new();
         private List<CharacterModel> _sortedModels;
@@ -42,12 +49,23 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         
         public readonly ReactiveProperty<TurnPhase> CurrentPhase = new(TurnPhase.Idle);
         private CharacterModel CurrentCharacter { get; set; }
+        public DiceModel SelectedDice { get; private set; }
         public SkillModel SelectedSkill { get; private set; }
         public CharacterModel SelectedTarget { get; private set; }
         public TurnCommand CurrentCommand { get; private set; }
         
+        private readonly List<SkillModel> _validSkills = new();
+        public IReadOnlyList<SkillModel> ValidSkills => _validSkills;
+        
         private readonly List<CharacterModel> _validTargets = new();
         public IReadOnlyList<CharacterModel> ValidTargets => _validTargets;
+
+        private DisposableBag _disposableBag;
+
+        public TurnBasedModel()
+        {
+            _disposableBag = new DisposableBag();
+        }
 
         public void SetupBattle()
         {
@@ -58,6 +76,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
 
             _battleModel.RegisterAllCharacters(this);
 
+            CreateDiceModels();
+            
             void CreateCharacterModels(
                 MapGrid mapGrid,
                 IEnumerable<CharacterScriptableObject> characterScriptableObjects,
@@ -66,9 +86,18 @@ namespace SpaceKomodo.TurnBasedSystem.Core
                 foreach (var characterScriptableObject in characterScriptableObjects)
                 {
                     var newModel = new CharacterModel(characterScriptableObject.CharacterModel);
-                    models.Add(newModel);
+                    characterModels.Add(newModel);
                     modelList.Add(MapModel.AddModel(mapGrid, newModel));
                     turnSpeeds.Add(turnSpeeds.Count);
+                }
+            }
+
+            void CreateDiceModels()
+            {
+                for (var i = 0; i < diceAmount; ++i)
+                {
+                    var newModel = new DiceModel(Random.Range(1, 7), _disposableBag);
+                    diceModels.Add(newModel);
                 }
             }
         }
@@ -82,13 +111,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         {
             ++CurrentRound.Value;
             CurrentTurn.Value = 0;
-            
-            turnSpeeds.Shuffle();
-            
-            for (var ii = 0; ii < models.Count; ++ii)
-            {
-                models[turnSpeeds[ii]].SetTurnSpeed(ii + 1);
-            }
+
+            RecalculateRandomSpeedBonus();
 
             RecalculateTurnOrder();
             
@@ -96,14 +120,27 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             
             NextTurn();
         }
-        
+
+        private void RecalculateRandomSpeedBonus()
+        {
+            if (!IsUsingRandomSpeedBonus)
+            {
+                return;
+            }
+            
+            turnSpeeds.Shuffle();
+            
+            for (var ii = 0; ii < characterModels.Count; ++ii)
+            {
+                characterModels[turnSpeeds[ii]].SetTurnSpeed(ii + 1);
+            }
+        }
+
         private void RecalculateTurnOrder()
         {
-            var random = new Random();
-            
-            _sortedModels = models
+            _sortedModels = characterModels
                 .OrderByDescending(characterModel => characterModel.CurrentSpeed.Value)
-                .ThenBy(_ => random.Next())
+                .ThenBy(_ => Random.Range(int.MinValue, int.MaxValue))
                 .ToList();
                 
             for (var ii = 0; ii < _sortedModels.Count; ii++)
@@ -116,7 +153,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
 
         public bool HasNextTurn()
         {
-            return CurrentTurn.Value < models.Count;
+            return CurrentTurn.Value < characterModels.Count;
         }
 
         public void NextTurn()
@@ -142,7 +179,18 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public void SetCurrentCharacter(CharacterModel character)
         {
             CurrentCharacter = character;
-            CurrentPhase.Value = TurnPhase.SelectSkill;
+            CurrentPhase.Value = TurnPhase.SelectDice;
+        }
+
+        public void SetSelectedDice(DiceModel dice)
+        {
+            SelectedDice = dice;
+            SelectedSkill = null;
+            SelectedTarget = null;
+            CurrentCommand = null;
+            CurrentPhase.Value = TurnPhase.SelectTarget;
+            
+            DetermineValidSkills();
         }
 
         public void SetSelectedSkill(SkillModel skill)
@@ -190,7 +238,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
                     break;
                     
                 case SkillTarget.SingleAlly:
-                    foreach (var model in models)
+                    foreach (var model in characterModels)
                     {
                         if (model != CurrentCharacter && model.IsHero() == CurrentCharacter.IsHero())
                         {
@@ -200,7 +248,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
                     break;
                     
                 case SkillTarget.SingleEnemy:
-                    foreach (var model in models)
+                    foreach (var model in characterModels)
                     {
                         if (model.IsHero() != CurrentCharacter.IsHero())
                         {
@@ -214,6 +262,15 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         private void ClearValidTargets()
         {
             _validTargets.Clear();
+        }
+
+        public void CancelSelectDice()
+        {
+            SelectedDice = null;
+            SelectedSkill = null;
+            SelectedTarget = null;
+            CurrentPhase.Value = TurnPhase.Idle;
+            ClearValidTargets();
         }
 
         public void CancelSelectSkill()

@@ -58,7 +58,7 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
                     break;
                     
                 case SkillTarget.SingleAlly:
-                    foreach (var model in _turnModel.models)
+                    foreach (var model in _turnModel.characterModels)
                     {
                         if (model != source && model.IsHero() == source.IsHero())
                         {
@@ -68,7 +68,7 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
                     break;
                     
                 case SkillTarget.SingleEnemy:
-                    foreach (var model in _turnModel.models)
+                    foreach (var model in _turnModel.characterModels)
                     {
                         if (model.IsHero() != source.IsHero())
                         {

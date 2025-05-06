@@ -7,7 +7,7 @@ namespace SpaceKomodo.TurnBasedSystem
     {
         public static void RegisterAllCharacters(this BattleModel battleModel, TurnBasedModel turnBasedModel)
         {
-            foreach (var character in turnBasedModel.models)
+            foreach (var character in turnBasedModel.characterModels)
             {
                 battleModel.RegisterCharacter(character);
             }

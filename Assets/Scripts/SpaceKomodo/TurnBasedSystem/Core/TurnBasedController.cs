@@ -6,6 +6,7 @@ using SpaceKomodo.Extensions;
 using SpaceKomodo.TurnBasedSystem.Characters;
 using SpaceKomodo.TurnBasedSystem.Characters.Skills;
 using SpaceKomodo.TurnBasedSystem.Commands;
+using SpaceKomodo.TurnBasedSystem.Dice;
 using SpaceKomodo.TurnBasedSystem.Events;
 using SpaceKomodo.TurnBasedSystem.Views;
 using SpaceKomodo.Utilities;
@@ -24,11 +25,13 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         private readonly ISubscriber<NextTurnButtonClickedEvent> _nextTurnButtonClickedSubscriber;
         private readonly IViewFactory<CharacterModel, CharacterTurnView> _characterViewFactory;
         private readonly IViewFactory<SkillModel, CurrentTurnSkillView> _currentTurnSkillViewFactory;
+        private readonly IViewFactory<DiceModel, TurnDiceView> _turnDiceViewFactory;
         private readonly SkillExecutor _skillExecutor;
         private readonly ISubscriber<CommandExecutedEvent> _commandExecutedSubscriber;
         private readonly ISubscriber<EffectExecutedEvent> _effectExecutedSubscriber;
 
         private readonly Dictionary<CharacterModel, CharacterTurnView> _characterViews = new();
+        private readonly Dictionary<DiceModel, TurnDiceView> _diceViews = new();
         private DisposableBag _disposableBag;
         
         public TurnBasedController(
@@ -39,6 +42,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             ISubscriber<NextTurnButtonClickedEvent> nextTurnButtonClickedSubscriber,
             IViewFactory<CharacterModel, CharacterTurnView> characterViewFactory,
             IViewFactory<SkillModel, CurrentTurnSkillView> currentTurnSkillViewFactory,
+            IViewFactory<DiceModel, TurnDiceView> turnDiceViewFactory,
             SkillExecutor skillExecutor,
             ISubscriber<CommandExecutedEvent> commandExecutedSubscriber,
             ISubscriber<EffectExecutedEvent> effectExecutedSubscriber)
@@ -50,6 +54,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             _nextTurnButtonClickedSubscriber = nextTurnButtonClickedSubscriber;
             _characterViewFactory = characterViewFactory;
             _currentTurnSkillViewFactory = currentTurnSkillViewFactory;
+            _turnDiceViewFactory = turnDiceViewFactory;
             _skillExecutor = skillExecutor;
             _commandExecutedSubscriber = commandExecutedSubscriber;
             _effectExecutedSubscriber = effectExecutedSubscriber;
@@ -62,18 +67,22 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             
             _model.TurnOrderChanged.Subscribe(_ => UpdateViewOrder());
             
-            _model.models.ObserveAdd().Select(addEvent => addEvent.Value).Subscribe(OnModelAdded);
-            _model.models.ObserveRemove().Select(removeEvent => removeEvent.Value).Subscribe(OnModelRemoved);
+            _model.characterModels.ObserveAdd().Select(addEvent => addEvent.Value).Subscribe(OnCharacterModelAdded);
+            _model.characterModels.ObserveRemove().Select(removeEvent => removeEvent.Value).Subscribe(OnCharacterModelRemoved);
+            
+            _model.diceModels.ObserveAdd().Select(addEvent => addEvent.Value).Subscribe(OnDiceModelAdded);
             
             _nextTurnButtonClickedSubscriber.Subscribe(_ => OnNextTurnButtonClicked());
+
+            _currentTurnCharacterSelectedSubscriber.Subscribe(evt => OnCurrentTurnCharacterSelected(evt.CharacterModel));
             
-            void OnModelAdded(CharacterModel newModel)
+            void OnCharacterModelAdded(CharacterModel newModel)
             {
                 var view = _characterViewFactory.Create(newModel, _view.CharacterTurnViewParentTransform);
                 _characterViews.Add(newModel, view);
             }
             
-            void OnModelRemoved(CharacterModel removedModel)
+            void OnCharacterModelRemoved(CharacterModel removedModel)
             {
                 if (_characterViews.TryGetValue(removedModel, out var view))
                 {
@@ -82,7 +91,11 @@ namespace SpaceKomodo.TurnBasedSystem.Core
                 }
             }
 
-            _currentTurnCharacterSelectedSubscriber.Subscribe(evt => OnCurrentTurnCharacterSelected(evt.CharacterModel));
+            void OnDiceModelAdded(DiceModel newModel)
+            {
+                var view = _turnDiceViewFactory.Create(newModel, _view.TurnDiceViewParentTransform);
+                _diceViews.Add(newModel, view);
+            }
 
             void OnCurrentTurnCharacterSelected(CharacterModel characterModel)
             {
@@ -129,7 +142,7 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         
         private void UpdateViewOrder()
         {
-            var sortedModels = new List<CharacterModel>(_model.models);
+            var sortedModels = new List<CharacterModel>(_model.characterModels);
             sortedModels.Sort((a, b) => a.TurnOrder.Value.CompareTo(b.TurnOrder.Value));
             
             for (var ii = 0; ii < sortedModels.Count; ++ii)

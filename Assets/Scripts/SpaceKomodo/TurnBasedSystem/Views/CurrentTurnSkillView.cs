@@ -12,6 +12,10 @@ namespace SpaceKomodo.TurnBasedSystem.Views
     {
         public Image Portrait;
         public Button Button;
+        public GameObject SelectableGameObject;
+        public GameObject SelectedGameObject;
+        public DiceFaceView DiceFaceView;
+        
         private SkillModel _skillModel;
         private IPublisher<SkillClickedEvent> _skillClickedPublisher;
         
