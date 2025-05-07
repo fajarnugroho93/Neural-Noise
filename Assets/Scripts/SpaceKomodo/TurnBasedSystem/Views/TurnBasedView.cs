@@ -33,6 +33,7 @@ namespace SpaceKomodo.TurnBasedSystem.Views
         [Inject] private readonly IPublisher<ExecuteCommandEvent> _executeCommandPublisher;
         [Inject] private readonly IPublisher<CancelCommandEvent> _cancelCommandPublisher;
         [Inject] private readonly ISubscriber<SkillClickedEvent> _skillClickedSubscriber;
+        [Inject] private readonly ISubscriber<DiceClickedEvent> _diceClickedSubscriber;
 
         private void Start()
         {
@@ -45,6 +46,7 @@ namespace SpaceKomodo.TurnBasedSystem.Views
             turnBasedModel.CurrentPhase.Subscribe(OnCurrentPhaseChanged);
             
             _skillClickedSubscriber.Subscribe(OnSkillClicked);
+            _diceClickedSubscriber.Subscribe(OnDiceClicked);
 
             void OnNextTurnButtonClicked()
             {
@@ -74,14 +76,14 @@ namespace SpaceKomodo.TurnBasedSystem.Views
             void OnCurrentPhaseChanged(TurnPhase currentPhase)
             {
                 phaseText.text = $"Phase {currentPhase}";
-                
+
                 SkillDetailsNameText.gameObject.SetActive(CanShowSkillDetails());
                 CancelButton.gameObject.SetActive(CanShowCancelButton());
                 ExecuteButton.gameObject.SetActive(CanShowExecuteButton());
                 
                 bool CanShowSkillDetails()
                 {
-                    return currentPhase is TurnPhase.SelectDice or TurnPhase.SelectSkill or TurnPhase.SelectTarget or TurnPhase.Confirmation;
+                    return currentPhase is TurnPhase.SelectSkill or TurnPhase.SelectTarget or TurnPhase.Confirmation;
                 }
                 
                 bool CanShowCancelButton()
@@ -98,6 +100,11 @@ namespace SpaceKomodo.TurnBasedSystem.Views
             void OnSkillClicked(SkillClickedEvent evt)
             {
                 SkillDetailsNameText.text = evt.Skill.Skill.ToString();
+            }
+            
+            void OnDiceClicked(DiceClickedEvent evt)
+            {
+                
             }
         }
     }

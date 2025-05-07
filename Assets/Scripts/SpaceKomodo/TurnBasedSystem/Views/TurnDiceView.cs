@@ -14,13 +14,15 @@ namespace SpaceKomodo.TurnBasedSystem.Views
     {
         public Button Button;
         public DiceFaceView DiceFaceView;
+        public GameObject SelectableGameObject;
+        public GameObject SelectedGameObject;
         
         private DiceModel _diceModel;
-        private IPublisher<TurnDiceClickedEvent> _turnDiceClickedPublisher;
+        private IPublisher<DiceClickedEvent> _turnDiceClickedPublisher;
         private DisposableBag _disposableBag;
         
         [Inject]
-        public void Construct(IPublisher<TurnDiceClickedEvent> turnDiceClickedPublisher)
+        public void Construct(IPublisher<DiceClickedEvent> turnDiceClickedPublisher)
         {
             _turnDiceClickedPublisher = turnDiceClickedPublisher;
         }
@@ -31,6 +33,29 @@ namespace SpaceKomodo.TurnBasedSystem.Views
             _diceModel.Value.Subscribe(OnDiceModelValueChanged).AddTo(ref _disposableBag);
 
             Button.onClick.AddListener(OnDiceTurnClicked);
+            
+            _diceModel.IsSelectable
+                .Subscribe(OnSelectableChanged)
+                .AddTo(ref _disposableBag);
+            _diceModel.IsSelected
+                .Subscribe(OnSelectedChanged)
+                .AddTo(ref _disposableBag);
+
+            void OnSelectableChanged(bool isSelectable)
+            {
+                if (SelectableGameObject != null)
+                {
+                    SelectableGameObject.SetActive(isSelectable);
+                }
+            }
+
+            void OnSelectedChanged(bool isSelected)
+            {
+                if (SelectedGameObject != null)
+                {
+                    SelectedGameObject.SetActive(isSelected);
+                }
+            }
 
             void OnDiceModelValueChanged(int value)
             {
@@ -40,7 +65,7 @@ namespace SpaceKomodo.TurnBasedSystem.Views
         
         private void OnDiceTurnClicked()
         {
-            _turnDiceClickedPublisher.Publish(new TurnDiceClickedEvent(_diceModel));
+            _turnDiceClickedPublisher.Publish(new DiceClickedEvent(_diceModel));
         }
 
         private void OnDestroy()

@@ -49,15 +49,14 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         
         public readonly ReactiveProperty<TurnPhase> CurrentPhase = new(TurnPhase.Idle);
         private CharacterModel CurrentCharacter { get; set; }
-        public DiceModel SelectedDice { get; private set; }
-        public SkillModel SelectedSkill { get; private set; }
-        public CharacterModel SelectedTarget { get; private set; }
+        private DiceModel SelectedDice { get; set; }
+        private SkillModel SelectedSkill { get; set; }
+        private CharacterModel SelectedTarget { get; set; }
         public TurnCommand CurrentCommand { get; private set; }
         
         private readonly List<SkillModel> _validSkills = new();
-        public IReadOnlyList<SkillModel> ValidSkills => _validSkills;
 
-        private DisposableBag _disposableBag;
+        private readonly DisposableBag _disposableBag;
 
         public TurnBasedModel()
         {
@@ -157,7 +156,9 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         {
             ++CurrentTurn.Value;
             
-            ResetTurnState();
+            ClearActiveCharacter();
+            
+            CurrentPhase.Value = TurnPhase.SelectDice;
 
             for (var ii = 0; ii < _sortedModels.Count; ++ii)
             {
@@ -176,26 +177,63 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         public void SetCurrentCharacter(CharacterModel character)
         {
             CurrentCharacter = character;
-            CurrentPhase.Value = TurnPhase.SelectSkill;
+            CurrentPhase.Value = TurnPhase.SelectDice;
+            
+            RollAllDice();
+        }
+        
+        private void RollAllDice()
+        {
+            foreach (var dice in diceModels)
+            {
+                dice.Roll();
+            }
         }
 
         public void SetSelectedDice(DiceModel dice)
         {
             SelectedDice = dice;
-            SelectedSkill = null;
-            SelectedTarget = null;
-            CurrentCommand = null;
-            CurrentPhase.Value = TurnPhase.SelectTarget;
+            CurrentPhase.Value = TurnPhase.SelectSkill;
             
-            // DetermineValidSkills();
+            foreach (var diceModel in diceModels)
+            {
+                diceModel.IsSelected.Value = (diceModel == dice);
+            }
+            
+            DetermineValidSkills();
+        }
+        
+        private void DetermineValidSkills()
+        {
+            _validSkills.Clear();
+            
+            if (CurrentCharacter == null || SelectedDice == null) return;
+            
+            foreach (var skill in CurrentCharacter.Skills)
+            {
+                bool isValid = skill.DiceFaceRequirement.Validate(new DiceFaceModel { Value = SelectedDice.Value.Value });
+                skill.IsSelectable.Value = isValid;
+                
+                if (isValid)
+                {
+                    _validSkills.Add(skill);
+                }
+            }
         }
 
         public void SetSelectedSkill(SkillModel skill)
         {
+            if (!_validSkills.Contains(skill)) return;
+            
             SelectedSkill = skill;
             SelectedTarget = null;
             CurrentCommand = null;
             CurrentPhase.Value = TurnPhase.SelectTarget;
+            
+            foreach (var skillModel in CurrentCharacter.Skills)
+            {
+                skillModel.IsSelected.Value = (skillModel == skill);
+            }
             
             DetermineValidTargets();
         }
@@ -218,6 +256,17 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             if (CurrentCharacter == null || SelectedSkill == null || SelectedTarget == null) return;
             
             CurrentCommand = new SkillCommand(CurrentCharacter, SelectedSkill, SelectedTarget, _skillExecutor);
+        }
+
+        public void ClearSelectedDice()
+        {
+            foreach (var diceModel in diceModels)
+            {
+                diceModel.IsSelectable.Value = true;
+                diceModel.IsSelected.Value = false;
+            }
+            
+            SelectedDice = null;
         }
 
         public bool IsValidTarget(CharacterModel target)
@@ -265,7 +314,30 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             {
                 characterModel.ResetTarget();
             }
+            
             SelectedTarget = null;
+        }
+        
+        public void ClearValidSkills()
+        {
+            foreach (var validSkill in _validSkills)
+            {
+                validSkill.IsSelectable.Value = false;
+            }
+            _validSkills.Clear();
+            
+            SelectedSkill = null;
+        }
+        
+        public void ClearSelectedSkills()
+        {
+            if (SelectedSkill == null)
+            {
+                return;
+            }
+            
+            SelectedSkill.IsSelected.Value = false;
+            SelectedSkill = null;
         }
         
         public void ClearSelectedTargets()
@@ -281,30 +353,34 @@ namespace SpaceKomodo.TurnBasedSystem.Core
 
         public void CancelSelectDice()
         {
-            SelectedDice = null;
-            SelectedSkill = null;
-            CurrentPhase.Value = TurnPhase.Idle;
-            ClearValidTargets();
+            CurrentPhase.Value = TurnPhase.SelectDice;
         }
 
         public void CancelSelectSkill()
         {
-            SelectedSkill = null;
-            CurrentPhase.Value = TurnPhase.Idle;
-            ClearValidTargets();
+            CurrentPhase.Value = TurnPhase.SelectDice;
         }
 
         public void CancelSelectTarget()
         {
-            SelectedSkill = null;
-            CurrentPhase.Value = TurnPhase.Idle;
-            ClearValidTargets();
+            CurrentPhase.Value = TurnPhase.SelectSkill;
         }
 
         public void CancelConfirmation()
         {
             ClearSelectedTargets();
             CurrentPhase.Value = TurnPhase.SelectTarget;
+        }
+        
+        private void ClearSelectableSkills()
+        {
+            if (CurrentCharacter == null) return;
+            
+            foreach (var skill in CurrentCharacter.Skills)
+            {
+                skill.IsSelectable.Value = false;
+                skill.IsSelected.Value = false;
+            }
         }
 
         public void ExecuteCurrentCommand()
@@ -321,16 +397,6 @@ namespace SpaceKomodo.TurnBasedSystem.Core
             {
                 characterModel.IsCurrentTurn.Value = false;
             }
-        }
-
-        private void ResetTurnState()
-        {
-            ClearActiveCharacter();
-            ClearValidTargets();
-            
-            SelectedSkill = null;
-            CurrentCommand = null;
-            CurrentPhase.Value = TurnPhase.Idle;
         }
     }
 }

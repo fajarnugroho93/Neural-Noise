@@ -4,7 +4,6 @@ using SpaceKomodo.TurnBasedSystem.Core;
 using SpaceKomodo.TurnBasedSystem.Events;
 using VContainer.Unity;
 using DisposableBag = R3.DisposableBag;
-using ExecuteCommandEvent = SpaceKomodo.TurnBasedSystem.Events.ExecuteCommandEvent;
 
 namespace SpaceKomodo.TurnBasedSystem.Commands
 {
@@ -12,12 +11,11 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
     {
         private readonly TurnBasedModel _turnModel;
 
-        private readonly IPublisher<SkillSelectedEvent> _skillSelectedPublisher;
-        private readonly IPublisher<TargetSelectedEvent> _targetSelectedPublisher;
         private readonly IPublisher<CommandExecutedEvent> _commandExecutedPublisher;
         
         private readonly ISubscriber<SkillClickedEvent> _skillClickedSubscriber;
         private readonly ISubscriber<TargetClickedEvent> _targetClickedSubscriber;
+        private readonly ISubscriber<DiceClickedEvent> _diceClickedSubscriber;
         private readonly ISubscriber<ExecuteCommandEvent> _executeCommandSubscriber;
         private readonly ISubscriber<CancelCommandEvent> _cancelCommandSubscriber;
         private readonly ISubscriber<CurrentTurnCharacterSelectedEvent> _currentTurnCharacterSelectedSubscriber;
@@ -26,23 +24,21 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         
         public TurnCommandController(
             TurnBasedModel turnModel,
-            IPublisher<SkillSelectedEvent> skillSelectedPublisher,
-            IPublisher<TargetSelectedEvent> targetSelectedPublisher,
             IPublisher<CommandExecutedEvent> commandExecutedPublisher,
             ISubscriber<SkillClickedEvent> skillClickedSubscriber,
             ISubscriber<TargetClickedEvent> targetClickedSubscriber,
+            ISubscriber<DiceClickedEvent> diceClickedSubscriber,
             ISubscriber<ExecuteCommandEvent> executeCommandSubscriber,
             ISubscriber<CancelCommandEvent> cancelCommandSubscriber,
             ISubscriber<CurrentTurnCharacterSelectedEvent> currentTurnCharacterSelectedSubscriber)
         {
             _turnModel = turnModel;
             
-            _skillSelectedPublisher = skillSelectedPublisher;
-            _targetSelectedPublisher = targetSelectedPublisher;
             _commandExecutedPublisher = commandExecutedPublisher;
             
             _skillClickedSubscriber = skillClickedSubscriber;
             _targetClickedSubscriber = targetClickedSubscriber;
+            _diceClickedSubscriber = diceClickedSubscriber;
             _executeCommandSubscriber = executeCommandSubscriber;
             _cancelCommandSubscriber = cancelCommandSubscriber;
             _currentTurnCharacterSelectedSubscriber = currentTurnCharacterSelectedSubscriber;
@@ -52,6 +48,7 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         {
             _skillClickedSubscriber.Subscribe(OnSkillClicked).AddTo(ref _disposableBag);
             _targetClickedSubscriber.Subscribe(OnTargetClicked).AddTo(ref _disposableBag);
+            _diceClickedSubscriber.Subscribe(OnDiceClicked).AddTo(ref _disposableBag);
             _executeCommandSubscriber.Subscribe(_ => ExecuteCommand()).AddTo(ref _disposableBag);
             _cancelCommandSubscriber.Subscribe(_ => CancelCommand()).AddTo(ref _disposableBag);
             _currentTurnCharacterSelectedSubscriber.Subscribe(evt => _turnModel.SetCurrentCharacter(evt.CharacterModel)).AddTo(ref _disposableBag);
@@ -59,18 +56,39 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
             _turnModel.CurrentPhase.Subscribe(OnPhaseChanged).AddTo(ref _disposableBag);
         }
         
-        private void OnSkillClicked(SkillClickedEvent evt)
+        private void OnDiceClicked(DiceClickedEvent evt)
         {
-            if (_turnModel.CurrentPhase.Value != TurnPhase.Idle 
-                && _turnModel.CurrentPhase.Value != TurnPhase.SelectSkill
+            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectDice
+                && _turnModel.CurrentPhase.Value != TurnPhase.SelectSkill 
                 && _turnModel.CurrentPhase.Value != TurnPhase.SelectTarget
                 && _turnModel.CurrentPhase.Value != TurnPhase.Confirmation)
             {
                 return;
             }
 
+            if (!evt.DiceModel.IsSelectable.Value)
+            {
+                return;
+            }
+            
+            _turnModel.SetSelectedDice(evt.DiceModel);
+        }
+        
+        private void OnSkillClicked(SkillClickedEvent evt)
+        {
+            if (_turnModel.CurrentPhase.Value != TurnPhase.SelectSkill 
+                && _turnModel.CurrentPhase.Value != TurnPhase.SelectTarget
+                && _turnModel.CurrentPhase.Value != TurnPhase.Confirmation)
+            {
+                return;
+            }
+
+            if (!evt.Skill.IsSelectable.Value)
+            {
+                return;
+            }
+
             _turnModel.SetSelectedSkill(evt.Skill);
-            _skillSelectedPublisher.Publish(new SkillSelectedEvent(_turnModel.SelectedSkill));
         }
         
         private void OnTargetClicked(TargetClickedEvent evt)
@@ -83,7 +101,6 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
             if (_turnModel.IsValidTarget(evt.Target))
             {
                 _turnModel.SetSelectedTarget(evt.Target);
-                _targetSelectedPublisher.Publish(new TargetSelectedEvent(_turnModel.SelectedTarget));
             }
         }
         
@@ -99,21 +116,20 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         
         private void CancelCommand()
         {
-            if (_turnModel.CurrentPhase.Value == TurnPhase.SelectSkill)
+            switch (_turnModel.CurrentPhase.Value)
             {
-                _turnModel.CancelSelectDice();
-            }
-            else if (_turnModel.CurrentPhase.Value == TurnPhase.SelectSkill)
-            {
-                _turnModel.CancelSelectSkill();
-            }
-            else if (_turnModel.CurrentPhase.Value == TurnPhase.SelectTarget)
-            {
-                _turnModel.CancelSelectTarget();
-            }
-            else if (_turnModel.CurrentPhase.Value == TurnPhase.Confirmation)
-            {
-                _turnModel.CancelConfirmation();
+                case TurnPhase.SelectDice:
+                    _turnModel.CancelSelectDice();
+                    break;
+                case TurnPhase.SelectSkill:
+                    _turnModel.CancelSelectSkill();
+                    break;
+                case TurnPhase.SelectTarget:
+                    _turnModel.CancelSelectTarget();
+                    break;
+                case TurnPhase.Confirmation:
+                    _turnModel.CancelConfirmation();
+                    break;
             }
         }
         
@@ -121,8 +137,18 @@ namespace SpaceKomodo.TurnBasedSystem.Commands
         {
             switch (phase)
             {
-                case TurnPhase.Idle:
+                case TurnPhase.SelectDice:
+                    _turnModel.ClearSelectedTargets();
                     _turnModel.ClearValidTargets();
+                    _turnModel.ClearSelectedSkills();
+                    _turnModel.ClearValidSkills();
+                    _turnModel.ClearSelectedDice();
+                    break;
+                case TurnPhase.SelectSkill:
+                    _turnModel.ClearSelectedTargets();
+                    _turnModel.ClearValidTargets();
+                    _turnModel.ClearSelectedSkills();
+                    _turnModel.ClearValidSkills();
                     break;
                 case TurnPhase.SelectTarget:
                     break;

@@ -15,44 +15,30 @@ namespace SpaceKomodo.TurnBasedSystem.Dice
 
         public bool Validate(DiceFaceModel diceFaceModel)
         {
-            switch (InputType)
+            return InputType switch
             {
-                case DiceFaceInputType.None:
-                    return false;
-                case DiceFaceInputType.Any:
-                    return true;
-                case DiceFaceInputType.Single:
-                    return diceFaceModel.Value == Value;
-                case DiceFaceInputType.Range:
-                    return diceFaceModel.Value >= Range.x && diceFaceModel.Value <= Range.y;
-                case DiceFaceInputType.Even:
-                    return diceFaceModel.Value % 2 == 0;
-                case DiceFaceInputType.Odd:
-                    return diceFaceModel.Value % 2 != 0;
-                default:
-                    return false;
-            }
+                DiceFaceInputType.None => false,
+                DiceFaceInputType.Any => true,
+                DiceFaceInputType.Single => diceFaceModel.Value == Value,
+                DiceFaceInputType.Range => diceFaceModel.Value >= Range.x && diceFaceModel.Value <= Range.y,
+                DiceFaceInputType.Even => diceFaceModel.Value % 2 == 0,
+                DiceFaceInputType.Odd => diceFaceModel.Value % 2 != 0,
+                _ => false
+            };
         }
 
         public override string ToString()
         {
-            switch (InputType)
+            return InputType switch
             {
-                case DiceFaceInputType.None:
-                    return "None";
-                case DiceFaceInputType.Any:
-                    return "Any";
-                case DiceFaceInputType.Single:
-                    return $"{Value}";
-                case DiceFaceInputType.Range:
-                    return $"{Range.x}-{Range.y}";
-                case DiceFaceInputType.Even:
-                    return "Even";
-                case DiceFaceInputType.Odd:
-                    return "Odd";
-                default:
-                    return "None";
-            }
+                DiceFaceInputType.None => "None",
+                DiceFaceInputType.Any => "Any",
+                DiceFaceInputType.Single => $"{Value}",
+                DiceFaceInputType.Range => $"{Range.x}-{Range.y}",
+                DiceFaceInputType.Even => "Even",
+                DiceFaceInputType.Odd => "Odd",
+                _ => "None"
+            };
         }
 
         public object Clone()

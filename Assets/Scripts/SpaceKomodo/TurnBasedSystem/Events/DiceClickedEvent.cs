@@ -2,11 +2,11 @@ using SpaceKomodo.TurnBasedSystem.Dice;
 
 namespace SpaceKomodo.TurnBasedSystem.Events
 {
-    public class TurnDiceClickedEvent
+    public class DiceClickedEvent
     {
         public DiceModel DiceModel;
 
-        public TurnDiceClickedEvent(DiceModel diceModel)
+        public DiceClickedEvent(DiceModel diceModel)
         {
             DiceModel = diceModel;
         }

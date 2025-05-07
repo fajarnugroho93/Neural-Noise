@@ -9,9 +9,15 @@ namespace SpaceKomodo.TurnBasedSystem.Dice
     {
         public ReactiveProperty<int> Value;
         
+        public readonly ReactiveProperty<bool> IsSelectable;
+        public readonly ReactiveProperty<bool> IsSelected;
+        
         public DiceModel(int value, DisposableBag disposableBag)
         {
             Value = new ReactiveProperty<int>(value).AddTo(ref disposableBag);
+            
+            IsSelectable = new ReactiveProperty<bool>(false);
+            IsSelected = new ReactiveProperty<bool>(false);
         }
 
         public void Roll()
