@@ -7,7 +7,6 @@ namespace SpaceKomodo.TurnBasedSystem.Dice
     [Serializable]
     public class DiceModel
     {
-        // public DiceFaceModel[] DiceFaceModels;
         public ReactiveProperty<int> Value;
         
         public DiceModel(int value, DisposableBag disposableBag)

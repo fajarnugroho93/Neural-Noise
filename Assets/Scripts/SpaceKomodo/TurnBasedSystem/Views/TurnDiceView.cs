@@ -20,11 +20,9 @@ namespace SpaceKomodo.TurnBasedSystem.Views
         private DisposableBag _disposableBag;
         
         [Inject]
-        public void Construct(IPublisher<TurnDiceClickedEvent> turnDiceClickedPublisher,
-            DisposableBag disposableBag)
+        public void Construct(IPublisher<TurnDiceClickedEvent> turnDiceClickedPublisher)
         {
             _turnDiceClickedPublisher = turnDiceClickedPublisher;
-            _disposableBag = disposableBag;
         }
         
         public void Initialize(DiceModel diceModel)
@@ -43,6 +41,11 @@ namespace SpaceKomodo.TurnBasedSystem.Views
         private void OnDiceTurnClicked()
         {
             _turnDiceClickedPublisher.Publish(new TurnDiceClickedEvent(_diceModel));
+        }
+
+        private void OnDestroy()
+        {
+            _disposableBag.Dispose();
         }
     }
 }

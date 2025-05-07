@@ -5,7 +5,7 @@ using UnityEngine;
 namespace SpaceKomodo.TurnBasedSystem.Dice
 {
     [Serializable]
-    public class DiceFaceRequirement
+    public class DiceFaceRequirement : ICloneable
     {
         public DiceFaceInputType InputType;
         [Range(1, 6)]
@@ -32,6 +32,37 @@ namespace SpaceKomodo.TurnBasedSystem.Dice
                 default:
                     return false;
             }
+        }
+
+        public override string ToString()
+        {
+            switch (InputType)
+            {
+                case DiceFaceInputType.None:
+                    return "None";
+                case DiceFaceInputType.Any:
+                    return "Any";
+                case DiceFaceInputType.Single:
+                    return $"{Value}";
+                case DiceFaceInputType.Range:
+                    return $"{Range.x}-{Range.y}";
+                case DiceFaceInputType.Even:
+                    return "Even";
+                case DiceFaceInputType.Odd:
+                    return "Odd";
+                default:
+                    return "None";
+            }
+        }
+
+        public object Clone()
+        {
+            return new DiceFaceRequirement
+            {
+                InputType = InputType,
+                Value = Value,
+                Range = Range
+            };
         }
     }
 }
