@@ -204,6 +204,8 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         {
             if (!IsValidTarget(target)) return;
 
+            ClearSelectedTargets();
+            
             target.IsTargeted.Value = true;
             SelectedTarget = target;
             CurrentPhase.Value = TurnPhase.Confirmation;
@@ -268,6 +270,11 @@ namespace SpaceKomodo.TurnBasedSystem.Core
         
         public void ClearSelectedTargets()
         {
+            if (SelectedTarget == null)
+            {
+                return;
+            }
+            
             SelectedTarget.IsTargeted.Value = false;
             SelectedTarget = null;
         }
